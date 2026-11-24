@@ -1,0 +1,2110 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>GameVault — Toko Game &amp; Voucher</title>
+<style>
+  :root{
+    --bg:#070910;
+    --bg-2:#0b0e1a;
+    --card:#11152a;
+    --card-2:#161b33;
+    --line:#232a4a;
+    --line-soft:#1b2140;
+    --txt:#e9edff;
+    --muted:#93a0c4;
+    --a1:#8b5cf6;
+    --a2:#22d3ee;
+    --ok:#34d399;
+    --warn:#fbbf24;
+    --err:#f87171;
+    --r:16px;
+    --shadow:0 18px 50px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none !important}
+  html,body{margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(1100px 600px at 12% -8%, rgba(139,92,246,.20), transparent 60%),
+      radial-gradient(900px 520px at 88% 0%, rgba(34,211,238,.14), transparent 55%),
+      var(--bg);
+    color:var(--txt);
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.55;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  img{max-width:100%;display:block}
+  button{font:inherit;color:inherit;cursor:pointer}
+  input,select{font:inherit}
+  a{color:var(--a2)}
+  :focus-visible{outline:2px solid var(--a2);outline-offset:2px;border-radius:8px}
+  .wrap{width:min(1200px,100% - 32px);margin-inline:auto}
+  .muted{color:var(--muted)}
+  .small{font-size:13px}
+
+  /* ---------- header ---------- */
+  .topbar{
+    position:sticky;top:0;z-index:40;
+    background:rgba(7,9,16,.86);
+    backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .topbar-inner{display:flex;align-items:center;gap:14px;padding:12px 0;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.4px;font-size:19px}
+  .brand-mark{
+    width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--a1),var(--a2));color:#080a14;font-weight:900;font-size:15px;
+    box-shadow:0 0 24px rgba(139,92,246,.5)
+  }
+  .brand span b{color:var(--a2)}
+  .search{
+    flex:1 1 260px;min-width:200px;display:flex;align-items:center;gap:8px;
+    background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 12px;
+  }
+  .search input{background:none;border:0;outline:none;color:var(--txt);width:100%}
+  .search input::placeholder{color:#6d7ba2}
+  .search .icon{opacity:.7}
+  .top-actions{display:flex;gap:8px;margin-left:auto}
+  .icon-btn{
+    display:inline-flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);
+    color:var(--txt);padding:9px 14px;border-radius:12px;transition:.18s;font-weight:600;font-size:14px;
+  }
+  .icon-btn:hover{border-color:#3a4472;background:var(--card-2);transform:translateY(-1px)}
+  .icon-btn .count{
+    background:linear-gradient(135deg,var(--a1),var(--a2));color:#06080f;border-radius:999px;
+    min-width:22px;height:22px;display:grid;place-items:center;font-size:12px;font-weight:800;padding:0 6px
+  }
+  .icon-btn.admin-btn{border-color:rgba(139,92,246,.5);background:linear-gradient(180deg,rgba(139,92,246,.22),rgba(139,92,246,.08))}
+
+  /* ---------- hero ---------- */
+  .hero{padding:34px 0 8px}
+  .hero-card{
+    position:relative;overflow:hidden;border-radius:22px;border:1px solid var(--line);
+    background:linear-gradient(120deg,rgba(139,92,246,.22),rgba(34,211,238,.10) 55%,transparent),var(--card);
+    padding:30px;box-shadow:var(--shadow)
+  }
+  .hero-card:after{
+    content:"";position:absolute;inset:auto -60px -120px auto;width:340px;height:340px;border-radius:50%;
+    background:radial-gradient(circle,rgba(34,211,238,.30),transparent 65%)
+  }
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:1.6px;text-transform:uppercase;
+    color:var(--a2);font-weight:800;margin-bottom:10px
+  }
+  .hero h1{margin:0 0 8px;font-size:clamp(24px,4vw,38px);line-height:1.15}
+  .hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--a2),#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{margin:0;max-width:640px;color:var(--muted)}
+  .hero-badges{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+  .pill{
+    font-size:12.5px;font-weight:700;padding:7px 12px;border-radius:999px;
+    background:rgba(255,255,255,.05);border:1px solid var(--line);color:#c9d3f2
+  }
+
+  /* ---------- filters ---------- */
+  .filters{margin:22px 0 8px;display:flex;flex-direction:column;gap:12px}
+  .chip-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+  .chip{
+    white-space:nowrap;padding:8px 14px;border-radius:999px;border:1px solid var(--line);
+    background:var(--card);color:#c3cdee;font-size:13.5px;font-weight:600;transition:.16s
+  }
+  .chip:hover{border-color:#3a4472}
+  .chip[aria-pressed="true"]{
+    background:linear-gradient(135deg,var(--a1),#6d5bd0);border-color:transparent;color:#fff;
+    box-shadow:0 6px 22px rgba(139,92,246,.35)
+  }
+  .filter-extra{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .filter-extra label{font-size:13px;color:var(--muted);font-weight:600}
+
+  /* ---------- section heads ---------- */
+  .sec-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:28px 0 14px}
+  .sec-head h2{margin:0;font-size:19px;letter-spacing:.2px}
+  .sec-head .line{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+
+  /* ---------- product grid ---------- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(236px,1fr));gap:16px}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;
+    display:flex;flex-direction:column;transition:.2s;box-shadow:0 8px 24px rgba(0,0,0,.25)
+  }
+  .card:hover{transform:translateY(-4px);border-color:#3a4472;box-shadow:0 16px 40px rgba(0,0,0,.45)}
+  .card-media{position:relative;aspect-ratio:16/10;background:#0a0d18;overflow:hidden}
+  .card-media img{width:100%;height:100%;object-fit:cover}
+  .card-tag{
+    position:absolute;top:10px;left:10px;font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;
+    padding:5px 9px;border-radius:8px;background:rgba(7,9,16,.75);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(6px)
+  }
+  .card-body{padding:14px;display:flex;flex-direction:column;gap:6px;flex:1}
+  .card-body h3{margin:0;font-size:15.5px;line-height:1.3}
+  .card-body p{margin:0;font-size:12.8px;color:var(--muted);min-height:36px}
+  .card-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:6px}
+  .price{font-weight:800;color:#fff}
+  .price small{display:block;font-size:11px;color:var(--muted);font-weight:600}
+  .btn{
+    border:1px solid var(--line);background:var(--card-2);color:var(--txt);border-radius:11px;
+    padding:10px 16px;font-weight:700;font-size:14px;transition:.16s;display:inline-flex;align-items:center;gap:8px;justify-content:center
+  }
+  .btn:hover{border-color:#3f4a7d;transform:translateY(-1px)}
+  .btn.primary{background:linear-gradient(135deg,var(--a1),#6d5bd0);border-color:transparent;color:#fff;box-shadow:0 8px 24px rgba(139,92,246,.3)}
+  .btn.primary:hover{filter:brightness(1.08)}
+  .btn.ghost{background:transparent}
+  .btn.danger{border-color:rgba(248,113,113,.45);color:#fecaca;background:rgba(248,113,113,.08)}
+  .btn.small{padding:7px 12px;font-size:13px;border-radius:9px}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+  .empty{
+    border:1px dashed var(--line);border-radius:var(--r);padding:28px;text-align:center;color:var(--muted);
+    background:rgba(255,255,255,.02)
+  }
+
+  /* ---------- cart drawer ---------- */
+  .scrim{position:fixed;inset:0;background:rgba(3,5,12,.7);backdrop-filter:blur(3px);z-index:60;opacity:0;pointer-events:none;transition:.2s}
+  .scrim.show{opacity:1;pointer-events:auto}
+  .drawer{
+    position:fixed;top:0;right:0;height:100%;width:min(420px,100%);z-index:61;background:var(--bg-2);
+    border-left:1px solid var(--line);display:flex;flex-direction:column;
+    transform:translateX(102%);transition:transform .25s ease;box-shadow:-20px 0 60px rgba(0,0,0,.5)
+  }
+  .drawer.open{transform:none}
+  .drawer-head{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--line)}
+  .drawer-head h2{margin:0;font-size:17px}
+  .drawer-body{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12px}
+  .cart-item{display:flex;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:10px}
+  .cart-item img{width:66px;height:56px;object-fit:cover;border-radius:9px;flex:none}
+  .cart-item .ci-main{flex:1;min-width:0}
+  .cart-item h4{margin:0;font-size:14px}
+  .cart-item .ci-meta{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+  .cart-item .ci-price{font-weight:800;font-size:13.5px;margin-top:4px}
+  .qty{display:inline-flex;align-items:center;gap:6px;margin-top:6px}
+  .qty button{width:26px;height:26px;border-radius:8px;border:1px solid var(--line);background:var(--card-2);color:#fff;font-weight:800;line-height:1}
+  .qty span{min-width:20px;text-align:center;font-weight:700;font-size:13px}
+  .ci-remove{margin-left:auto;background:none;border:0;color:#f0a4a4;font-size:12px;font-weight:700;align-self:flex-start}
+  .drawer-foot{padding:14px;border-top:1px solid var(--line);background:var(--card)}
+  .totals{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+  .totals strong{font-size:20px}
+  .drawer-foot .btn{width:100%}
+
+  /* ---------- modal ---------- */
+  .modal{position:fixed;inset:0;z-index:70;display:grid;place-items:center;padding:16px;background:rgba(3,5,12,.75);backdrop-filter:blur(4px)}
+  .modal[hidden]{display:none}
+  .modal-card{
+    width:min(760px,100%);max-height:92vh;overflow:auto;background:var(--bg-2);border:1px solid var(--line);
+    border-radius:20px;box-shadow:var(--shadow);position:relative
+  }
+  .modal-close{position:absolute;top:12px;right:12px;z-index:2;width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:rgba(7,9,16,.8);color:#fff;font-size:18px;display:grid;place-items:center}
+  .modal-card.narrow{width:min(460px,100%)}
+  .detail-media{aspect-ratio:16/7;background:#0a0d18;overflow:hidden}
+  .detail-media img{width:100%;height:100%;object-fit:cover}
+  .detail-body{padding:20px}
+  .detail-body h2{margin:0 0 4px;font-size:22px}
+  .detail-body .sub{color:var(--muted);font-size:13px;margin:0 0 16px}
+  .field{margin-bottom:14px}
+  .field > label,.field-label{display:block;font-size:12.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:#aab6da;margin-bottom:6px}
+  select,input[type=text],input[type=password]{
+    width:100%;background:var(--card);border:1px solid var(--line);color:var(--txt);border-radius:11px;
+    padding:11px 12px;outline:none
+  }
+  select:focus,input[type=text]:focus,input[type=password]:focus{border-color:var(--a1);box-shadow:0 0 0 3px rgba(139,92,246,.18)}
+  .nominal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+  .nominal{
+    text-align:left;padding:10px 12px;border-radius:11px;border:1px solid var(--line);background:var(--card);
+    display:flex;flex-direction:column;gap:2px;transition:.15s
+  }
+  .nominal b{font-size:14px}
+  .nominal span{font-size:11.5px;color:var(--muted)}
+  .nominal[aria-pressed="true"]{border-color:var(--a2);background:rgba(34,211,238,.10);box-shadow:0 0 0 2px rgba(34,211,238,.18) inset}
+  .detail-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+  .detail-actions .btn{flex:1 1 180px}
+  .field-error,.form-error{color:#fca5a5;font-size:12.5px;margin:6px 0 0;font-weight:600}
+  .form-error[hidden],.field-error[hidden]{display:none}
+  .intro-box{
+    background:rgba(34,211,238,.07);border:1px solid rgba(34,211,238,.25);border-radius:12px;
+    padding:10px 12px;font-size:12.5px;color:#bfe9f3;margin-bottom:16px
+  }
+
+  /* ---------- admin ---------- */
+  .view[hidden]{display:none !important}
+  .login-wrap{min-height:calc(100vh - 80px);display:grid;place-items:center;padding:40px 0}
+  .login-card{
+    width:min(420px,100%);background:var(--card);border:1px solid var(--line);border-radius:20px;
+    padding:26px;box-shadow:var(--shadow)
+  }
+  .login-card h2{margin:0 0 4px;font-size:22px}
+  .login-card .field{margin-top:16px}
+  .login-card .btn{width:100%;margin-top:8px}
+  .hint{font-size:12px;color:#7f8cb3;margin:14px 0 0;text-align:center}
+  .admin-shell{display:grid;grid-template-columns:236px minmax(0,1fr);gap:20px;padding:22px 0 60px;align-items:start}
+  .admin-nav{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px;
+    position:sticky;top:82px;display:flex;flex-direction:column;gap:6px
+  }
+  .admin-nav .nav-title{font-size:11px;letter-spacing:1.3px;text-transform:uppercase;color:#7f8cb3;font-weight:800;padding:4px 10px 8px}
+  .nav-btn{
+    text-align:left;background:none;border:1px solid transparent;border-radius:10px;padding:10px 12px;
+    font-size:14px;font-weight:650;color:#c6d0ef;display:flex;align-items:center;gap:9px
+  }
+  .nav-btn:hover{background:var(--card-2)}
+  .nav-btn[aria-current="true"]{background:rgba(139,92,246,.16);border-color:rgba(139,92,246,.45);color:#fff}
+  .nav-sep{height:1px;background:var(--line);margin:8px 4px}
+  .admin-main{min-width:0}
+  .admin-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .admin-head h1{margin:0;font-size:23px}
+  .admin-head p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+  .panel{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.22)
+  }
+  .panel + .panel{margin-top:16px}
+  .panel h2{margin:0 0 4px;font-size:17px}
+  .panel .panel-sub{margin:0 0 16px;font-size:13px;color:var(--muted)}
+  .demo-banner{
+    display:flex;align-items:center;gap:10px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.35);
+    color:#fde68a;border-radius:12px;padding:10px 14px;font-size:13px;font-weight:600;margin-bottom:16px
+  }
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+  .stat{background:var(--card-2);border:1px solid var(--line);border-radius:13px;padding:14px}
+  .stat .k{font-size:11.5px;letter-spacing:.8px;text-transform:uppercase;color:#8f9cc0;font-weight:800}
+  .stat .v{font-size:24px;font-weight:850;margin-top:4px;line-height:1.2}
+  .stat .d{font-size:12px;color:var(--muted)}
+  .stat .v.ok{color:var(--ok)}
+  .stat .v.warn{color:var(--warn)}
+  .table{display:flex;flex-direction:column}
+  .trow{
+    display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,.8fr) minmax(0,.9fr);
+    gap:12px;align-items:center;padding:11px 4px;border-bottom:1px solid var(--line-soft)
+  }
+  .trow.v{grid-template-columns:minmax(0,1.5fr) minmax(0,1.15fr) minmax(0,.8fr) minmax(0,.9fr)}
+  .trow.th{font-size:11.5px;text-transform:uppercase;letter-spacing:.8px;color:#8f9cc0;font-weight:800;border-bottom-color:var(--line)}
+  .trow:last-child{border-bottom:0}
+  .prod{display:flex;align-items:center;gap:10px;min-width:0}
+  .prod img{width:54px;height:40px;border-radius:8px;object-fit:cover;flex:none}
+  .prod .name{font-weight:700;font-size:14px;line-height:1.3}
+  .prod .id{font-size:11.5px;color:#7784aa;overflow-wrap:anywhere}
+  .money{font-variant-numeric:tabular-nums;font-weight:650;font-size:13.5px}
+  .pricebox{display:flex;align-items:center;gap:6px;background:var(--card-2);border:1px solid var(--line);border-radius:10px;padding:6px 10px}
+  .pricebox span{font-size:12px;color:#8f9cc0;font-weight:700}
+  .pricebox input{background:none;border:0;outline:none;color:#fff;width:100%;padding:3px 0;font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+  .pricebox:focus-within{border-color:var(--a1);box-shadow:0 0 0 3px rgba(139,92,246,.16)}
+  .pricebox.invalid{border-color:rgba(248,113,113,.6);background:rgba(248,113,113,.06)}
+  .cell-label{display:none;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:#8f9cc0;font-weight:800;margin-bottom:3px}
+  .v-filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .v-filters .grow{flex:1 1 180px;min-width:150px}
+  .v-filters label{display:block;font-size:11.5px;text-transform:uppercase;letter-spacing:.7px;color:#8f9cc0;font-weight:800;margin-bottom:5px}
+  .savebar{
+    position:sticky;bottom:12px;margin-top:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    background:rgba(22,27,51,.96);border:1px solid var(--line);border-radius:14px;padding:12px 16px;
+    box-shadow:0 14px 40px rgba(0,0,0,.5);z-index:20
+  }
+  .savebar .dirty-note{font-size:13px;font-weight:650;color:var(--warn)}
+  .savebar .btn{margin-left:auto}
+  .row-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .note-list{margin:0;padding-left:18px;color:var(--muted);font-size:13px}
+  .note-list li{margin-bottom:4px}
+
+  /* ---------- toast ---------- */
+  .toasts{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:90;display:flex;flex-direction:column;gap:8px;width:min(440px,calc(100% - 24px))}
+  .toast{
+    background:#151a30;border:1px solid var(--line);border-left:4px solid var(--a2);border-radius:12px;
+    padding:11px 14px;font-size:13.5px;font-weight:600;box-shadow:var(--shadow);animation:pop .2s ease
+  }
+  .toast.error{border-left-color:var(--err)}
+  .toast.ok{border-left-color:var(--ok)}
+  @keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  .fab{
+    position:fixed;right:18px;bottom:18px;z-index:45;display:inline-flex;align-items:center;gap:10px;
+    background:linear-gradient(135deg,#25d366,#128c4a);color:#04210f;font-weight:800;border:0;
+    padding:12px 18px;border-radius:999px;box-shadow:0 14px 40px rgba(37,211,102,.35)
+  }
+  .fab:hover{filter:brightness(1.06)}
+  .fab[hidden]{display:none}
+
+  @media (max-width:860px){
+    .admin-shell{grid-template-columns:1fr;padding-top:12px}
+    .admin-nav{position:static;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px}
+    .admin-nav .nav-title,.admin-nav .nav-sep{display:none}
+    .nav-btn{white-space:normal;padding:9px 10px;font-size:13px;line-height:1.3}
+    .trow,.trow.v{grid-template-columns:1fr;gap:6px;padding:14px 4px;align-items:start}
+    .trow.th{display:none}
+    .login-wrap{min-height:auto;align-items:start;padding:24px 0 48px}
+    .cell-label{display:block}
+    .savebar .btn{margin-left:auto;width:auto;padding:9px 14px;font-size:13px;white-space:nowrap}
+    .savebar{padding:9px 12px;gap:10px;flex-wrap:nowrap;bottom:8px}
+    .savebar .dirty-note{font-size:12px;line-height:1.3}
+  }
+  @media (max-width:520px){
+    .hero-card{padding:22px}
+    .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+    .card-body h3{font-size:14px}
+    .card-body p{min-height:0}
+    .admin-head h1{font-size:20px}
+    .detail-body{padding:16px}
+    .fab{padding:11px 15px;font-size:13.5px}
+    .top-actions{width:100%;margin-left:0}
+    .icon-btn{flex:1;justify-content:center}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <div class="brand"><span class="brand-mark">GV</span><span>Game<b>Vault</b></span></div>
+    <div class="search">
+      <span class="icon" aria-hidden="true">&#128269;</span>
+      <label class="sr-only" for="searchInput" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Cari produk</label>
+      <input id="searchInput" type="text" placeholder="Cari konsol, voucher, atau top up..." autocomplete="off">
+    </div>
+    <div class="top-actions">
+      <button class="icon-btn" id="cartBtn" type="button" aria-haspopup="dialog">
+        <span aria-hidden="true">&#128722;</span> Keranjang <span class="count" id="cartCount">0</span>
+      </button>
+      <button class="icon-btn admin-btn" id="adminBtn" type="button"><span aria-hidden="true">&#9881;</span> Admin</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ CATALOG ============ -->
+  <section id="catalogView" class="view">
+    <div class="hero">
+      <div class="hero-card">
+        <div class="eyebrow"><span aria-hidden="true">&#9670;</span> Official digital store</div>
+        <h1>Konsol, voucher, dan top up game<br><em>tanpa ribet, langsung diproses.</em></h1>
+        <p>Pilih produk, tentukan region dan nominal, lalu pesan lewat WhatsApp. Tanpa akun, tanpa langkah berbelit.</p>
+        <div class="hero-badges">
+          <span class="pill">&#10003; Proses cepat</span>
+          <span class="pill">&#10003; Region akun jelas</span>
+          <span class="pill">&#10003; Checkout via WhatsApp</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="filters">
+      <div class="chip-row" id="catChips" role="group" aria-label="Filter kategori produk"></div>
+      <div class="filter-extra">
+        <label for="regionFilter">Region voucher</label>
+        <select id="regionFilter" style="width:auto;min-width:170px">
+          <option value="all">Semua region</option>
+          <option value="ID">Indonesia</option>
+          <option value="US">Amerika Serikat</option>
+          <option value="SG">Singapura</option>
+          <option value="JP">Jepang</option>
+        </select>
+        <span class="muted small" id="resultNote"></span>
+      </div>
+    </div>
+
+    <div id="consoleSection">
+      <div class="sec-head"><h2>Konsol</h2><span class="line"></span></div>
+      <div class="grid" id="consoleGrid"></div>
+    </div>
+
+    <div id="voucherSection" style="margin-bottom:40px">
+      <div class="sec-head"><h2>Voucher &amp; Top Up</h2><span class="line"></span></div>
+      <div class="grid" id="voucherGrid"></div>
+    </div>
+  </section>
+
+  <!-- ============ ADMIN ============ -->
+  <section id="adminView" class="view" hidden>
+    <div id="loginWrap" class="login-wrap">
+      <form id="loginForm" class="login-card" novalidate>
+        <h2>Masuk Admin</h2>
+        <p class="muted small" style="margin:0 0 6px">Kelola harga konsol, harga voucher, dan nomor WhatsApp toko.</p>
+        <div class="field">
+          <label for="loginUser">Username</label>
+          <input id="loginUser" name="username" type="text" autocomplete="username" spellcheck="false">
+        </div>
+        <div class="field">
+          <label for="loginPass">Password</label>
+          <input id="loginPass" name="password" type="password" autocomplete="current-password">
+        </div>
+        <p class="form-error" id="loginError" role="alert" hidden></p>
+        <button class="btn primary" type="submit">Masuk</button>
+        <p class="hint">Demo lokal: <strong>admin</strong> / <strong>admin</strong></p>
+      </form>
+    </div>
+
+    <div id="dashboard" class="admin-shell" hidden>
+      <nav class="admin-nav" aria-label="Navigasi dashboard">
+        <div class="nav-title">Dashboard</div>
+        <button class="nav-btn" type="button" data-tab="ringkasan" aria-current="true">&#128202; Ringkasan</button>
+        <button class="nav-btn" type="button" data-tab="konsol">&#127918; Harga Konsol</button>
+        <button class="nav-btn" type="button" data-tab="voucher">&#127903; Harga Voucher</button>
+        <button class="nav-btn" type="button" data-tab="toko">&#9881; Pengaturan Toko</button>
+        <div class="nav-sep"></div>
+        <button class="nav-btn" type="button" id="navCatalog">&#8592; Lihat katalog</button>
+        <button class="nav-btn" type="button" id="navLogout">&#10162; Keluar</button>
+      </nav>
+
+      <div class="admin-main">
+        <div class="admin-head">
+          <div>
+            <h1 id="tabTitle">Ringkasan</h1>
+            <p>Perubahan harga dan nomor toko langsung dipakai katalog pelanggan.</p>
+          </div>
+        </div>
+
+        <div class="demo-banner" role="status"><span aria-hidden="true">&#9432;</span> Dashboard demo. Perubahan berlaku di browser ini.</div>
+
+        <!-- A. RINGKASAN -->
+        <section class="panel" id="panelRingkasan" data-panel="ringkasan">
+          <p class="panel-sub">Dihitung dari data katalog yang sedang aktif.</p>
+          <div class="stat-grid" id="summaryGrid"></div>
+          <div class="panel" style="margin-top:16px;background:var(--card-2)">
+            <h2 style="font-size:15px">Alur demo</h2>
+            <ul class="note-list">
+              <li>Pelanggan melihat harga aktif di katalog, detail, keranjang, dan pesan WhatsApp.</li>
+              <li>Harga jual disimpan per produk/varian di <code>gv_cfg</code>; keranjang di <code>gv_cart</code>.</li>
+              <li>Kredensial demo dan sesi <code>sessionStorage</code> hanya untuk prototipe lokal.</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- B. HARGA KONSOL -->
+        <section class="panel" id="panelKonsol" data-panel="konsol" hidden>
+          <p class="panel-sub">Isi harga jual dalam rupiah. Bilangan bulat nonnegatif, nol diperbolehkan.</p>
+          <div class="table" id="consoleTable"></div>
+        </section>
+
+        <!-- C. HARGA VOUCHER -->
+        <section class="panel" id="panelVoucher" data-panel="voucher" hidden>
+          <p class="panel-sub">Harga jual selalu dalam IDR, nominal mengikuti mata uang region akun.</p>
+          <div class="v-filters">
+            <div>
+              <label for="voucherRegionFilter">Filter region</label>
+              <select id="voucherRegionFilter">
+                <option value="all">Semua region</option>
+                <option value="ID">Indonesia</option>
+                <option value="US">Amerika Serikat</option>
+                <option value="SG">Singapura</option>
+                <option value="JP">Jepang</option>
+              </select>
+            </div>
+            <div class="grow">
+              <label for="voucherServiceFilter">Filter layanan</label>
+              <select id="voucherServiceFilter"><option value="all">Semua layanan</option></select>
+            </div>
+          </div>
+          <div class="table" id="voucherTable"></div>
+          <p class="hint" style="text-align:left;margin-top:12px">Isian harga tetap tersimpan saat filter diganti. Simpan perubahan untuk menerapkan ke semua varian yang diedit.</p>
+        </section>
+
+        <!-- D. PENGATURAN TOKO -->
+        <section class="panel" id="panelToko" data-panel="toko" hidden>
+          <p class="panel-sub">Satu nomor dipakai untuk live chat, pertanyaan produk, dan checkout.</p>
+          <div class="field" style="max-width:420px">
+            <label for="phoneInput">Nomor WhatsApp toko</label>
+            <input id="phoneInput" type="text" inputmode="tel" autocomplete="off" placeholder="Contoh: 081234567890 atau +6281234567890" aria-describedby="phoneHelp phoneError">
+            <p class="small muted" id="phoneHelp" style="margin:6px 0 0">Nomor Indonesia otomatis disimpan sebagai <code>62...</code>. Nomor internasional didukung dengan kode negara.</p>
+            <p class="field-error" id="phoneError" role="alert" hidden></p>
+          </div>
+          <div class="row-actions">
+            <button class="btn danger" type="button" id="restoreBtn">Kembalikan harga contoh</button>
+          </div>
+          <p class="small muted" style="margin:10px 0 0">Pemulihan harga tidak mengubah nomor WhatsApp toko maupun isi keranjang pelanggan.</p>
+        </section>
+
+        <div class="savebar" id="saveBar">
+          <span class="dirty-note" id="dirtyNote">Tidak ada perubahan belum disimpan.</span>
+          <button class="btn primary" type="button" id="saveBtn">Simpan perubahan</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<button class="fab" id="liveChatBtn" type="button" aria-label="Live chat WhatsApp">
+  <span aria-hidden="true">&#128172;</span> Live chat
+</button>
+
+<!-- cart -->
+<div class="scrim" id="cartScrim"></div>
+<aside class="drawer" id="cartDrawer" role="dialog" aria-modal="true" aria-label="Keranjang belanja" aria-hidden="true">
+  <div class="drawer-head">
+    <h2>Keranjang</h2>
+    <button class="btn ghost small" type="button" id="cartClose">Tutup</button>
+  </div>
+  <div class="drawer-body" id="cartBody"></div>
+  <div class="drawer-foot">
+    <div class="totals"><span class="muted small">Subtotal</span><strong id="cartSubtotal">Rp 0</strong></div>
+    <button class="btn primary" type="button" id="checkoutBtn">Checkout via WhatsApp</button>
+  </div>
+</aside>
+
+<div class="modal" id="detailModal" hidden></div>
+<div class="modal" id="dialogModal" hidden></div>
+<div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
+
+<script>
+'use strict';
+
+/* =========================================================
+   Konstanta & data katalog
+   ========================================================= */
+const LS_CFG = 'gv_cfg';
+const LS_CART = 'gv_cart';
+const SS_ADMIN = 'gv_admin_session';
+const DEMO_USER = 'admin';
+const DEMO_PASS = 'admin';
+
+const REGION_META = {
+  ID: { label: 'Indonesia',       currency: 'IDR', prefix: 'Rp ' },
+  US: { label: 'Amerika Serikat', currency: 'USD', prefix: '$'   },
+  SG: { label: 'Singapura',       currency: 'SGD', prefix: 'S$'  },
+  JP: { label: 'Jepang',          currency: 'JPY', prefix: '¥'   }
+};
+
+const CONSOLES = [
+  {
+    id: 'console-ps5-slim', name: 'PlayStation 5 Slim Digital', tag: 'Konsol',
+    price: 8499000, c1: '#1b3fa0', c2: '#22d3ee',
+    desc: 'Konsol generasi terbaru, 1TB SSD, sudah termasuk DualSense.'
+  },
+  {
+    id: 'console-xbox-series-s', name: 'Xbox Series S 512GB', tag: 'Konsol',
+    price: 5299000, c1: '#0f5132', c2: '#34d399',
+    desc: 'Konsol ringkas all-digital dengan Game Pass siap pakai.'
+  },
+  {
+    id: 'console-switch-oled', name: 'Nintendo Switch OLED', tag: 'Konsol',
+    price: 4799000, c1: '#a1121b', c2: '#fb7185',
+    desc: 'Layar OLED 7 inci, bisa dimainkan di TV maupun handheld.'
+  },
+  {
+    id: 'console-ps5-pro', name: 'PlayStation 5 Pro', tag: 'Konsol',
+    price: 12999000, c1: '#312e81', c2: '#818cf8',
+    desc: 'Performa grafis kelas atas untuk gaming 4K 120fps.'
+  }
+];
+
+const SERVICES = [
+  {
+    id: 'steam', name: 'Steam Wallet', tag: 'Voucher', c1: '#0b3a6b', c2: '#38bdf8',
+    desc: 'Isi saldo Steam Wallet untuk beli game dan item di Steam.',
+    account: [],
+    regions: [
+      { code: 'ID', variants: [ [12000,13500], [45000,49500], [90000,97000], [250000,264000], [600000,629000] ] },
+      { code: 'US', variants: [ [5,82000], [10,160000], [20,315000], [50,780000] ] },
+      { code: 'SG', variants: [ [5,58000], [10,115000], [20,228000] ] },
+      { code: 'JP', variants: [ [1000,115000], [3000,335000], [5000,555000] ] }
+    ]
+  },
+  {
+    id: 'playstation', name: 'PlayStation Store', tag: 'Voucher', c1: '#1e3a8a', c2: '#60a5fa',
+    desc: 'Voucher PlayStation Store untuk game, DLC, dan PS Plus.',
+    account: [],
+    regions: [
+      { code: 'ID', variants: [ [100000,109000], [200000,216000], [500000,529000] ] },
+      { code: 'US', variants: [ [10,160000], [25,390000], [50,770000] ] },
+      { code: 'SG', variants: [ [10,115000], [30,335000] ] },
+      { code: 'JP', variants: [ [1500,168000], [3000,330000] ] }
+    ]
+  },
+  {
+    id: 'nintendo', name: 'Nintendo eShop', tag: 'Voucher', c1: '#9f1239', c2: '#fb7185',
+    desc: 'Kode Nintendo eShop untuk game Switch dan konten digital.',
+    account: [],
+    regions: [
+      { code: 'ID', variants: [ [100000,110000], [250000,269000] ] },
+      { code: 'US', variants: [ [10,162000], [20,320000], [35,552000] ] },
+      { code: 'SG', variants: [ [10,118000], [20,232000] ] },
+      { code: 'JP', variants: [ [1500,169000], [3000,333000] ] }
+    ]
+  },
+  {
+    id: 'xbox', name: 'Xbox Gift Card', tag: 'Voucher', c1: '#14532d', c2: '#4ade80',
+    desc: 'Gift card Xbox untuk game, add-on, dan langganan Game Pass.',
+    account: [],
+    regions: [
+      { code: 'ID', variants: [ [50000,55000], [100000,108000], [250000,264000] ] },
+      { code: 'US', variants: [ [10,160000], [25,388000] ] },
+      { code: 'SG', variants: [ [10,116000], [20,230000] ] },
+      { code: 'JP', variants: [ [1500,167000] ] }
+    ]
+  },
+  {
+    id: 'mlbb', name: 'Mobile Legends', tag: 'Top Up', c1: '#0e7490', c2: '#22d3ee',
+    desc: 'Top up Diamond Mobile Legends langsung ke akun tujuan.',
+    account: [
+      { key: 'playerId', label: 'Player ID', placeholder: 'Contoh: 123456789', hint: 'Ada di halaman profil Mobile Legends.', validate: validateNumericId },
+      { key: 'zoneId', label: 'Zone ID', placeholder: 'Contoh: 1234', hint: 'Tertera di samping Player ID.', validate: validateZoneId }
+    ],
+    regions: [
+      { code: 'ID', variants: [ [86,22000], [172,43000], [257,65000], [344,86000], [514,129000], [706,176000], [1412,349000] ] }
+    ]
+  },
+  {
+    id: 'freefire', name: 'Free Fire', tag: 'Top Up', c1: '#b45309', c2: '#fbbf24',
+    desc: 'Top up Diamond Free Fire cepat dengan Player ID.',
+    account: [
+      { key: 'playerId', label: 'Player ID Free Fire', placeholder: 'Contoh: 1234567890', hint: 'Buka profil pemain di Free Fire untuk melihat Player ID.', validate: validateNumericId }
+    ],
+    regions: [
+      { code: 'ID', variants: [ [70,10000], [140,20000], [355,50000], [720,100000], [1450,200000] ] }
+    ]
+  },
+  {
+    id: 'roblox', name: 'Roblox Top Up Robux', tag: 'Top Up', c1: '#7f1d1d', c2: '#f87171',
+    desc: 'Top up Robux ke akun Roblox menggunakan username.',
+    account: [
+      { key: 'username', label: 'Username Roblox', placeholder: 'Contoh: GameVaultID', hint: 'Username 3–20 karakter: huruf, angka, atau garis bawah.', validate: validateRobloxUser }
+    ],
+    regions: [
+      { code: 'ID', variants: [ [80,20000], [400,95000], [800,185000], [1700,375000], [4500,950000] ] }
+    ]
+  }
+];
+
+/* normalisasi data katalog: region meta + ID varian stabil */
+const CONSOLE_INDEX = new Map();
+const SERVICE_INDEX = new Map();
+const VARIANT_INDEX = new Map();
+
+CONSOLES.forEach(function (c) { CONSOLE_INDEX.set(c.id, c); });
+SERVICES.forEach(function (s) {
+  s.regions = s.regions.map(function (r) {
+    return {
+      code: r.code,
+      label: REGION_META[r.code].label,
+      currency: REGION_META[r.code].currency,
+      prefix: REGION_META[r.code].prefix,
+      variants: r.variants.map(function (pair) {
+        const amount = pair[0];
+        const price = pair[1];
+        const id = s.id + '-' + r.code + '-' + amount;
+        const isTopUp = s.id === 'mlbb' || s.id === 'freefire' || s.id === 'roblox';
+        const unit = s.id === 'mlbb' || s.id === 'freefire' ? 'Diamond' : s.id === 'roblox' ? 'Robux' : null;
+        const nominal = unit
+          ? amount.toLocaleString('id-ID') + ' ' + unit
+          : REGION_META[r.code].prefix + amount.toLocaleString('id-ID');
+        const variant = { id: id, amount: amount, price: price, nominal: nominal };
+        VARIANT_INDEX.set(id, { service: s, region: r, variant: variant });
+        return variant;
+      })
+    };
+  });
+  SERVICE_INDEX.set(s.id, s);
+});
+
+/* =========================================================
+   Util
+   ========================================================= */
+function $(sel, root) { return (root || document).querySelector(sel); }
+function $$(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+function rupiah(n) {
+  const v = Number(n);
+  return 'Rp ' + (Number.isFinite(v) ? Math.round(v) : 0).toLocaleString('id-ID');
+}
+function esc(value) {
+  return String(value == null ? '' : value).replace(/[&<>"']/g, function (ch) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+  });
+}
+function safeText(value) { return String(value == null ? '' : value); }
+
+function toast(message, kind) {
+  const root = $('#toasts');
+  const node = document.createElement('div');
+  node.className = 'toast' + (kind ? ' ' + kind : '');
+  node.textContent = message;
+  root.appendChild(node);
+  setTimeout(function () {
+    node.style.opacity = '0';
+    node.style.transition = 'opacity .25s';
+    setTimeout(function () { node.remove(); }, 260);
+  }, kind === 'error' ? 4800 : 3200);
+}
+
+/* Validasi akun top up */
+function validateNumericId(value) {
+  const v = String(value || '').trim();
+  if (!v) return 'Player ID wajib diisi.';
+  if (!/^\d+$/.test(v)) return 'Player ID hanya boleh berisi angka.';
+  if (v.length < 6 || v.length > 15) return 'Player ID harus 6–15 digit. Periksa kembali di profil akun.';
+  return '';
+}
+function validateZoneId(value) {
+  const v = String(value || '').trim();
+  if (!v) return 'Zone ID wajib diisi.';
+  if (!/^\d+$/.test(v)) return 'Zone ID hanya boleh berisi angka.';
+  if (v.length < 3 || v.length > 6) return 'Zone ID harus 3–6 digit, tertera di samping Player ID.';
+  return '';
+}
+function validateRobloxUser(value) {
+  const v = String(value || '').trim();
+  if (!v) return 'Username Roblox wajib diisi.';
+  if (!/^[A-Za-z0-9_]{3,20}$/.test(v)) return 'Username Roblox 3–20 karakter, hanya huruf, angka, atau garis bawah.';
+  return '';
+}
+
+/* =========================================================
+   Penyimpanan
+   ========================================================= */
+function emptyCfg() { return { phone: '', prices: {} }; }
+
+function loadCfg() {
+  const cfg = emptyCfg();
+  let raw = null;
+  try { raw = localStorage.getItem(LS_CFG); } catch (e) { raw = null; }
+  if (!raw) return cfg;
+  let parsed = null;
+  try { parsed = JSON.parse(raw); } catch (e) { parsed = null; }
+  if (!parsed || typeof parsed !== 'object') return cfg;
+
+  if (typeof parsed.phone === 'string') {
+    const digits = String(parsed.phone).replace(/[^\d]/g, '');
+    cfg.phone = digits;
+  }
+  const prices = parsed.prices && typeof parsed.prices === 'object' ? parsed.prices : {};
+  Object.keys(prices).forEach(function (key) {
+    const value = prices[key];
+    if (typeof value === 'number' && Number.isSafeInteger(value) && value >= 0) {
+      cfg.prices[key] = value;
+    } else if (typeof value === 'string' && /^\d+$/.test(value.trim())) {
+      const num = Number(value.trim());
+      if (Number.isSafeInteger(num)) cfg.prices[key] = num;
+    }
+  });
+  return cfg;
+}
+
+function persistCfg(cfg) {
+  try {
+    localStorage.setItem(LS_CFG, JSON.stringify({ phone: cfg.phone, prices: cfg.prices }));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function loadCart() {
+  let raw = null;
+  try { raw = localStorage.getItem(LS_CART); } catch (e) { raw = null; }
+  if (!raw) return [];
+  let parsed = null;
+  try { parsed = JSON.parse(raw); } catch (e) { parsed = null; }
+  if (!Array.isArray(parsed)) return [];
+  const items = [];
+  parsed.forEach(function (item) {
+    if (!item || typeof item !== 'object') return;
+    if (typeof item.id !== 'string') return;
+    if (item.kind !== 'console' && item.kind !== 'voucher') return;
+    const qty = Number.isSafeInteger(item.qty) && item.qty > 0 ? Math.min(item.qty, 99) : 1;
+    const account = item.account && typeof item.account === 'object' ? item.account : {};
+    items.push({
+      key: typeof item.key === 'string' ? item.key : item.id,
+      kind: item.kind,
+      id: item.id,
+      qty: qty,
+      account: account
+    });
+  });
+  return items;
+}
+
+function persistCart(cart) {
+  try {
+    localStorage.setItem(LS_CART, JSON.stringify(cart));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+/* =========================================================
+   State
+   ========================================================= */
+const state = {
+  cfg: loadCfg(),
+  cart: loadCart(),
+  ui: {
+    q: '',
+    cat: 'all',
+    region: 'all',
+    detail: null,
+    cartOpen: false
+  },
+  admin: {
+    tab: 'ringkasan',
+    region: 'all',
+    service: 'all',
+    draftConsole: {},
+    draftVoucher: {},
+    phoneDraft: null,
+    errors: {}
+  }
+};
+
+function sessionActive() {
+  try { return sessionStorage.getItem(SS_ADMIN) === '1'; } catch (e) { return false; }
+}
+function setSession(on) {
+  try {
+    if (on) sessionStorage.setItem(SS_ADMIN, '1');
+    else sessionStorage.removeItem(SS_ADMIN);
+  } catch (e) { /* storage bisa diblokir */ }
+}
+
+/* =========================================================
+   Harga aktif
+   ========================================================= */
+function consolePrice(consoleItem) {
+  const stored = state.cfg.prices[consoleItem.id];
+  return typeof stored === 'number' ? stored : consoleItem.price;
+}
+function variantPrice(variant) {
+  const stored = state.cfg.prices[variant.id];
+  return typeof stored === 'number' ? stored : variant.price;
+}
+function servicePriceRange(service) {
+  let min = Infinity;
+  service.regions.forEach(function (region) {
+    region.variants.forEach(function (variant) {
+      min = Math.min(min, variantPrice(variant));
+    });
+  });
+  return min === Infinity ? 0 : min;
+}
+function cartLinePrice(item) {
+  if (item.kind === 'console') {
+    const c = CONSOLE_INDEX.get(item.id);
+    return c ? consolePrice(c) : 0;
+  }
+  const entry = VARIANT_INDEX.get(item.id);
+  return entry ? variantPrice(entry.variant) : 0;
+}
+function cartSubtotal() {
+  return state.cart.reduce(function (sum, item) { return sum + cartLinePrice(item) * item.qty; }, 0);
+}
+function cartCount() {
+  return state.cart.reduce(function (sum, item) { return sum + item.qty; }, 0);
+}
+
+/* =========================================================
+   Gambar (SVG tertanam, tanpa jaringan)
+   ========================================================= */
+function svgTile(c1, c2, label, glyph) {
+  const svg =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" width="640" height="400">' +
+      '<defs>' +
+        '<linearGradient id="g" x1="0" y1="0" x2="1" y2="1">' +
+          '<stop offset="0" stop-color="' + c1 + '"/><stop offset="1" stop-color="' + c2 + '"/>' +
+        '</linearGradient>' +
+        '<radialGradient id="hl" cx="18%" cy="8%" r="85%">' +
+          '<stop offset="0" stop-color="#ffffff" stop-opacity=".32"/>' +
+          '<stop offset="1" stop-color="#ffffff" stop-opacity="0"/>' +
+        '</radialGradient>' +
+      '</defs>' +
+      '<rect width="640" height="400" fill="#080b16"/>' +
+      '<rect width="640" height="400" fill="url(#g)" opacity=".95"/>' +
+      '<rect width="640" height="400" fill="url(#hl)"/>' +
+      '<g opacity=".16" stroke="#fff" stroke-width="2">' +
+        '<path d="M-60 330 L300 -30"/><path d="M40 400 L400 40"/><path d="M200 430 L540 90"/>' +
+        '<path d="M360 440 L700 100"/><path d="M520 450 L860 110"/>' +
+      '</g>' +
+      glyph +
+      '<text x="40" y="352" font-family="Segoe UI, Arial, sans-serif" font-size="40" font-weight="800" fill="#ffffff">' +
+        esc(label) +
+      '</text>' +
+    '</svg>';
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+
+const GLYPH_CONSOLE =
+  '<g opacity=".9">' +
+    '<rect x="352" y="128" width="236" height="132" rx="20" fill="#05070f" opacity=".42"/>' +
+    '<rect x="368" y="144" width="204" height="100" rx="12" fill="none" stroke="#ffffff" stroke-opacity=".55" stroke-width="3"/>' +
+    '<circle cx="416" cy="194" r="10" fill="#fff" opacity=".8"/>' +
+    '<circle cx="556" cy="178" r="7" fill="#fff" opacity=".75"/>' +
+    '<circle cx="578" cy="200" r="7" fill="#fff" opacity=".55"/>' +
+    '<circle cx="534" cy="200" r="7" fill="#fff" opacity=".55"/>' +
+  '</g>';
+const GLYPH_CARD =
+  '<g opacity=".92">' +
+    '<rect x="356" y="136" width="228" height="126" rx="18" fill="#05070f" opacity=".38"/>' +
+    '<rect x="372" y="152" width="196" height="94" rx="12" fill="none" stroke="#ffffff" stroke-opacity=".6" stroke-width="3"/>' +
+    '<rect x="372" y="176" width="196" height="12" fill="#ffffff" opacity=".35"/>' +
+    '<circle cx="512" cy="216" r="16" fill="#ffffff" opacity=".35"/>' +
+    '<circle cx="486" cy="216" r="16" fill="#ffffff" opacity=".2"/>' +
+  '</g>';
+const GLYPH_DIAMOND =
+  '<g opacity=".92">' +
+    '<path d="M500 124 L568 180 L500 256 L432 180 Z" fill="#ffffff" opacity=".28"/>' +
+    '<path d="M500 146 L548 182 L500 234 L452 182 Z" fill="#ffffff" opacity=".62"/>' +
+    '<path d="M440 214 L478 246 L440 286 L402 246 Z" fill="#ffffff" opacity=".22"/>' +
+  '</g>';
+const GLYPH_ROBUX =
+  '<g opacity=".92">' +
+    '<path d="M500 122 L556 154 L556 218 L500 250 L444 218 L444 154 Z" fill="#ffffff" opacity=".22"/>' +
+    '<path d="M500 148 L534 168 L534 204 L500 224 L466 204 L466 168 Z" fill="#ffffff" opacity=".55"/>' +
+    '<rect x="470" y="176" width="18" height="18" rx="4" fill="#ffffff" opacity=".9"/>' +
+    '<rect x="512" y="176" width="18" height="18" rx="4" fill="#ffffff" opacity=".9"/>' +
+  '</g>';
+
+function consoleArtwork(c) { return svgTile(c.c1, c.c2, c.name, GLYPH_CONSOLE); }
+function serviceArtwork(s) {
+  const glyph = s.id === 'mlbb' || s.id === 'freefire' ? GLYPH_DIAMOND
+    : s.id === 'roblox' ? GLYPH_ROBUX : GLYPH_CARD;
+  return svgTile(s.c1, s.c2, s.name, glyph);
+}
+
+/* =========================================================
+   Dialog
+   ========================================================= */
+function showDialog(options) {
+  const o = options || {};
+  const backdrop = $('#dialogModal');
+  return new Promise(function (resolve) {
+    let settled = false;
+    function finish(value) {
+      if (settled) return;
+      settled = true;
+      backdrop.hidden = true;
+      backdrop.innerHTML = '';
+      document.removeEventListener('keydown', onKey);
+      resolve(value);
+    }
+    function onKey(e) { if (e.key === 'Escape') finish(null); }
+    const buttons = (o.buttons || [{ label: 'Tutup', value: null, variant: 'primary' }]).map(function (b, i) {
+      return '<button type="button" class="btn ' + (b.variant || '') + '" data-di="' + i + '">' + esc(b.label) + '</button>';
+    }).join('');
+    backdrop.innerHTML =
+      '<div class="modal-card narrow" role="dialog" aria-modal="true" aria-label="' + esc(o.title || 'Konfirmasi') + '">' +
+        '<div class="detail-body">' +
+          '<h2 style="font-size:19px">' + esc(o.title || 'Konfirmasi') + '</h2>' +
+          '<p class="muted small" style="margin:8px 0 18px;white-space:pre-line">' + esc(o.message || '') + '</p>' +
+          '<div class="detail-actions" style="margin-top:0">' + buttons + '</div>' +
+        '</div>' +
+      '</div>';
+    backdrop.hidden = false;
+    document.addEventListener('keydown', onKey);
+    $$('[data-di]', backdrop).forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const chosen = o.buttons[Number(btn.getAttribute('data-di'))];
+        finish(chosen ? chosen.value : null);
+      });
+    });
+    const first = $('.btn', backdrop);
+    if (first) first.focus();
+  });
+}
+
+function confirmDialog(title, message, confirmLabel, cancelLabel) {
+  return showDialog({
+    title: title,
+    message: message,
+    buttons: [
+      { label: cancelLabel || 'Batal', value: false, variant: 'ghost' },
+      { label: confirmLabel || 'Lanjutkan', value: true, variant: 'primary' }
+    ]
+  }).then(function (v) { return v === true; });
+}
+
+/* =========================================================
+   WhatsApp
+   ========================================================= */
+function normalizePhone(raw) {
+  const input = String(raw == null ? '' : raw).trim();
+  if (!input) return { ok: false, msg: 'Nomor WhatsApp toko belum diisi.' };
+  if (!/^\+?[\d\s\-().]+$/.test(input)) {
+    return { ok: false, msg: 'Nomor hanya boleh berisi angka, spasi, tanda +, tanda hubung, atau tanda kurung.' };
+  }
+  if ((input.match(/\+/g) || []).length > 1 || (input.indexOf('+') > 0)) {
+    return { ok: false, msg: 'Tanda + hanya boleh di awal nomor, misalnya +6281234567890.' };
+  }
+  let digits = input.replace(/[^\d]/g, '');
+  if (!digits) return { ok: false, msg: 'Nomor WhatsApp belum berisi angka.' };
+
+  if (digits.charAt(0) === '0') {
+    if (digits.length < 9 || digits.length > 14) {
+      return { ok: false, msg: 'Nomor Indonesia tidak valid. Contoh: 081234567890.' };
+    }
+    digits = '62' + digits.slice(1);
+  } else if (digits.indexOf('62') === 0) {
+    if (digits.length < 10 || digits.length > 15) {
+      return { ok: false, msg: 'Nomor Indonesia tidak valid. Contoh: +6281234567890.' };
+    }
+  } else {
+    if (digits.length < 8 || digits.length > 15) {
+      return { ok: false, msg: 'Nomor internasional harus 8–15 digit termasuk kode negara, misalnya +6591234567.' };
+    }
+  }
+  return { ok: true, value: digits, display: '+' + digits };
+}
+
+function shopPhone() {
+  const result = normalizePhone(state.cfg.phone);
+  return result.ok ? result.value : '';
+}
+
+function buildWaMessage(kind, payload) {
+  const lines = [];
+  if (kind === 'general') {
+    lines.push('Halo GameVault! Saya ingin bertanya tentang produk dan layanan yang tersedia.');
+    lines.push('');
+    lines.push('Mohon dibantu ya. Terima kasih.');
+  } else if (kind === 'product') {
+    const p = payload || {};
+    lines.push('Halo GameVault! Saya ingin memesan:');
+    lines.push('');
+    lines.push('Produk: ' + p.productName);
+    if (p.regionLabel) lines.push('Region akun: ' + p.regionLabel);
+    if (p.nominal) lines.push('Varian: ' + p.nominal);
+    lines.push('Harga: ' + rupiah(p.price));
+    if (p.accountLines && p.accountLines.length) {
+      lines.push('');
+      lines.push('Data akun:');
+      p.accountLines.forEach(function (l) { lines.push('- ' + l); });
+    }
+    lines.push('');
+    lines.push('Mohon konfirmasi ketersediaan dan cara pembayarannya. Terima kasih.');
+  } else if (kind === 'cart') {
+    lines.push('Halo GameVault! Saya ingin checkout pesanan berikut:');
+    lines.push('');
+    state.cart.forEach(function (item, index) {
+      const detail = cartItemDetail(item);
+      const price = cartLinePrice(item);
+      lines.push((index + 1) + '. ' + detail.name);
+      const parts = [];
+      if (detail.regionLabel) parts.push(detail.regionLabel);
+      if (detail.nominal) parts.push(detail.nominal);
+      if (parts.length) lines.push('   ' + parts.join(' — '));
+      if (detail.accountLines.length) lines.push('   ' + detail.accountLines.join(' | '));
+      lines.push('   ' + item.qty + ' x ' + rupiah(price) + ' = ' + rupiah(price * item.qty));
+    });
+    lines.push('');
+    lines.push('Subtotal: ' + rupiah(cartSubtotal()));
+    lines.push('Total item: ' + cartCount());
+    lines.push('');
+    lines.push('Mohon konfirmasi ketersediaan dan instruksi pembayaran. Terima kasih.');
+  }
+  return lines.join('\n');
+}
+
+function wa(kind, payload) {
+  const phone = shopPhone();
+  if (!phone) {
+    toast('Nomor WhatsApp toko belum dikonfigurasi.', 'error');
+    return;
+  }
+  const text = buildWaMessage(kind, payload);
+  const url = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(text);
+  window.open(url, '_blank', 'noopener');
+}
+
+/* =========================================================
+   Katalog pelanggan
+   ========================================================= */
+function renderCategoryChips() {
+  const root = $('#catChips');
+  const items = [{ id: 'all', label: 'Semua' }, { id: 'console', label: 'Konsol' }].concat(
+    SERVICES.map(function (s) { return { id: s.id, label: s.name }; })
+  );
+  root.innerHTML = items.map(function (item) {
+    return '<button class="chip" type="button" data-cat="' + esc(item.id) + '" aria-pressed="' +
+      (state.ui.cat === item.id ? 'true' : 'false') + '">' + esc(item.label) + '</button>';
+  }).join('');
+}
+
+function matchesQuery(text) {
+  const q = state.ui.q.trim().toLowerCase();
+  return !q || text.toLowerCase().indexOf(q) !== -1;
+}
+
+function visibleConsoles() {
+  if (state.ui.cat !== 'all' && state.ui.cat !== 'console') return [];
+  return CONSOLES.filter(function (c) {
+    return matchesQuery(c.name + ' ' + c.desc);
+  });
+}
+
+function visibleServices() {
+  let list = SERVICES;
+  if (state.ui.cat !== 'all' && state.ui.cat !== 'console') {
+    list = list.filter(function (s) { return s.id === state.ui.cat; });
+  }
+  return list.filter(function (s) {
+    if (!matchesQuery(s.name + ' ' + s.desc)) return false;
+    if (state.ui.region === 'all') return true;
+    return s.regions.some(function (r) { return r.code === state.ui.region; });
+  });
+}
+
+function renderCatalog() {
+  renderCategoryChips();
+
+  const consoles = visibleConsoles();
+  const services = visibleServices();
+
+  $('#consoleSection').hidden = consoles.length === 0;
+  $('#consoleGrid').innerHTML = consoles.map(function (c) {
+    return '<article class="card">' +
+      '<div class="card-media"><img src="' + consoleArtwork(c) + '" alt="' + esc(c.name) + '" loading="lazy"><span class="card-tag">' + esc(c.tag) + '</span></div>' +
+      '<div class="card-body">' +
+        '<h3>' + esc(c.name) + '</h3>' +
+        '<p>' + esc(c.desc) + '</p>' +
+        '<div class="card-foot">' +
+          '<div class="price">' + rupiah(consolePrice(c)) + '<small>Harga jual</small></div>' +
+          '<button class="btn small primary" type="button" data-open-console="' + esc(c.id) + '">Detail</button>' +
+        '</div>' +
+      '</div>' +
+    '</article>';
+  }).join('');
+
+  $('#voucherSection').hidden = services.length === 0;
+  $('#voucherGrid').innerHTML = services.map(function (s) {
+    const regionLabels = s.regions.map(function (r) { return r.code; }).join(' · ');
+    return '<article class="card">' +
+      '<div class="card-media"><img src="' + serviceArtwork(s) + '" alt="' + esc(s.name) + '" loading="lazy"><span class="card-tag">' + esc(s.tag) + '</span></div>' +
+      '<div class="card-body">' +
+        '<h3>' + esc(s.name) + '</h3>' +
+        '<p>' + esc(s.desc) + '</p>' +
+        '<div class="small muted">Region: ' + esc(regionLabels) + '</div>' +
+        '<div class="card-foot">' +
+          '<div class="price">' + rupiah(servicePriceRange(s)) + '<small>Mulai dari</small></div>' +
+          '<button class="btn small primary" type="button" data-open-service="' + esc(s.id) + '">Detail</button>' +
+        '</div>' +
+      '</div>' +
+    '</article>';
+  }).join('');
+
+  if (!consoles.length && !services.length) {
+    $('#consoleSection').hidden = false;
+    $('#consoleGrid').innerHTML = '<div class="empty" style="grid-column:1/-1">Tidak ada produk yang cocok dengan pencarian atau filter.</div>';
+  }
+
+  $('#resultNote').textContent = (consoles.length + services.length) + ' produk ditampilkan';
+}
+
+/* ---------- detail produk ---------- */
+function openConsoleDetail(id) {
+  const c = CONSOLE_INDEX.get(id);
+  if (!c) return;
+  state.ui.detail = { kind: 'console', id: id };
+  renderDetail();
+}
+
+function openServiceDetail(id) {
+  const s = SERVICE_INDEX.get(id);
+  if (!s) return;
+  state.ui.detail = { kind: 'voucher', id: id, region: s.regions[0].code, variantId: null, account: {} };
+  renderDetail();
+}
+
+function currentServiceDetail() {
+  const d = state.ui.detail;
+  if (!d || d.kind !== 'voucher') return null;
+  const service = SERVICE_INDEX.get(d.id);
+  const region = service.regions.filter(function (r) { return r.code === d.region; })[0] || service.regions[0];
+  return { service: service, region: region };
+}
+
+function accountErrors(service, account) {
+  const errors = {};
+  (service.account || []).forEach(function (field) {
+    const msg = field.validate(account[field.key]);
+    if (msg) errors[field.key] = msg;
+  });
+  return errors;
+}
+
+function renderDetail() {
+  const modal = $('#detailModal');
+  const d = state.ui.detail;
+  if (!d) { modal.hidden = true; modal.innerHTML = ''; return; }
+  modal.hidden = false;
+
+  if (d.kind === 'console') {
+    const c = CONSOLE_INDEX.get(d.id);
+    if (!c) { closeDetail(); return; }
+    modal.innerHTML =
+      '<div class="modal-card" role="dialog" aria-modal="true" aria-label="' + esc(c.name) + '">' +
+        '<button class="modal-close" type="button" data-close aria-label="Tutup">&times;</button>' +
+        '<div class="detail-media"><img src="' + consoleArtwork(c) + '" alt="' + esc(c.name) + '"></div>' +
+        '<div class="detail-body">' +
+          '<h2>' + esc(c.name) + '</h2>' +
+          '<p class="sub">' + esc(c.desc) + '</p>' +
+          '<div class="price" style="font-size:24px">' + rupiah(consolePrice(c)) + '</div>' +
+          '<p class="muted small" style="margin:2px 0 0">Harga jual konsol, belum termasuk ongkir.</p>' +
+          '<div class="detail-actions">' +
+            '<button class="btn primary" type="button" data-buy-console="' + esc(c.id) + '">Pesan via WhatsApp</button>' +
+            '<button class="btn" type="button" data-add-console="' + esc(c.id) + '">Tambah ke Keranjang</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    return;
+  }
+
+  const ctx = currentServiceDetail();
+  const service = ctx.service;
+  const region = ctx.region;
+  const variant = d.variantId ? region.variants.filter(function (v) { return v.id === d.variantId; })[0] : null;
+  const errs = d.errors || {};
+
+  const regionField = service.regions.length > 1
+    ? '<div class="field"><label for="detailRegion">Region akun</label>' +
+        '<select id="detailRegion">' + service.regions.map(function (r) {
+          return '<option value="' + esc(r.code) + '"' + (r.code === region.code ? ' selected' : '') + '>' +
+            esc(r.label + ' (' + r.currency + ')') + '</option>';
+        }).join('') + '</select>' +
+        '<p class="small muted" style="margin:6px 0 0">Voucher hanya bisa dipakai pada akun dengan region yang sama.</p></div>'
+    : '<div class="field"><span class="field-label">Region akun</span><div class="pill">' + esc(region.label) + ' · ' + esc(region.currency) + '</div></div>';
+
+  const accountFields = (service.account || []).map(function (field) {
+    const value = d.account ? d.account[field.key] : '';
+    const err = errs[field.key];
+    return '<div class="field">' +
+      '<label for="acct_' + esc(field.key) + '">' + esc(field.label) + '</label>' +
+      '<input id="acct_' + esc(field.key) + '" type="text" inputmode="' + (field.key === 'username' ? 'text' : 'numeric') + '" autocomplete="off" ' +
+        'data-account="' + esc(field.key) + '" value="' + esc(value) + '" placeholder="' + esc(field.placeholder) + '">' +
+      '<p class="small muted" style="margin:6px 0 0">' + esc(field.hint) + '</p>' +
+      '<p class="field-error"' + (err ? '' : ' hidden') + ' data-account-error="' + esc(field.key) + '">' + esc(err || '') + '</p>' +
+    '</div>';
+  }).join('');
+
+  modal.innerHTML =
+    '<div class="modal-card" role="dialog" aria-modal="true" aria-label="' + esc(service.name) + '">' +
+      '<button class="modal-close" type="button" data-close aria-label="Tutup">&times;</button>' +
+      '<div class="detail-media"><img src="' + serviceArtwork(service) + '" alt="' + esc(service.name) + '"></div>' +
+      '<div class="detail-body">' +
+        '<h2>' + esc(service.name) + '</h2>' +
+        '<p class="sub">' + esc(service.desc) + '</p>' +
+        regionField +
+        '<div class="field">' +
+          '<span class="field-label">Pilih nominal</span>' +
+          '<div class="nominal-grid">' + region.variants.map(function (v) {
+            return '<button class="nominal" type="button" data-variant="' + esc(v.id) + '" aria-pressed="' +
+              (d.variantId === v.id ? 'true' : 'false') + '">' +
+              '<b>' + esc(v.nominal) + '</b><span>' + rupiah(variantPrice(v)) + '</span></button>';
+          }).join('') + '</div>' +
+          '<p class="field-error"' + (errs.variant ? '' : ' hidden') + ' data-variant-error>' + esc(errs.variant || '') + '</p>' +
+        '</div>' +
+        (accountFields ? '<div class="intro-box">Data akun hanya dipakai untuk memproses top up pesanan ini.</div>' + accountFields : '') +
+        '<div class="price" style="font-size:24px;margin-top:6px">' + rupiah(variant ? variantPrice(variant) : 0) + '</div>' +
+        '<p class="muted small" style="margin:2px 0 0">' +
+          (variant ? esc(variant.nominal + ' · ' + region.label) : 'Pilih nominal terlebih dahulu.') +
+        '</p>' +
+        '<div class="detail-actions">' +
+          '<button class="btn primary" type="button" data-buy-service="' + esc(service.id) + '">Pesan via WhatsApp</button>' +
+          '<button class="btn" type="button" data-add-service="' + esc(service.id) + '">Tambah ke Keranjang</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  $$('[data-account]', modal).forEach(function (input) {
+    input.addEventListener('input', function () {
+      const key = input.getAttribute('data-account');
+      d.account[key] = input.value;
+      d.errors = d.errors || {};
+      delete d.errors[key];
+      const errNode = $('[data-account-error="' + key + '"]', modal);
+      if (errNode) { errNode.hidden = true; errNode.textContent = ''; }
+    });
+  });
+
+  const regionSelect = $('#detailRegion', modal);
+  if (regionSelect) {
+    regionSelect.addEventListener('change', function () {
+      const next = regionSelect.value;
+      if (next === d.region) return;
+      const meta = REGION_META[next];
+      confirmDialog(
+        'Konfirmasi region akun',
+        'Region yang dipilih: ' + meta.label + '.\nPastikan region akun Anda sudah benar. Voucher dengan region berbeda tidak dapat diklaim dan tidak dapat dikembalikan.',
+        'Ya, region sesuai',
+        'Batal'
+      ).then(function (ok) {
+        if (ok) {
+          d.region = next;
+          d.variantId = null;
+          d.errors = {};
+        }
+        renderDetail();
+      });
+    });
+  }
+}
+
+function closeDetail() {
+  state.ui.detail = null;
+  const modal = $('#detailModal');
+  modal.hidden = true;
+  modal.innerHTML = '';
+}
+
+function detailPayload(service, region, variant) {
+  const d = state.ui.detail;
+  const accountLines = (service.account || []).map(function (field) {
+    return field.label + ': ' + (d.account[field.key] || '').trim();
+  });
+  return {
+    productName: service.name,
+    regionLabel: region.label + ' (' + region.code + ')',
+    nominal: variant.nominal,
+    price: variantPrice(variant),
+    accountLines: accountLines
+  };
+}
+
+function validateDetailSelection() {
+  const d = state.ui.detail;
+  if (!d || d.kind !== 'voucher') return null;
+  const ctx = currentServiceDetail();
+  const variant = d.variantId ? ctx.region.variants.filter(function (v) { return v.id === d.variantId; })[0] : null;
+  d.errors = {};
+  if (!variant) d.errors.variant = 'Pilih nominal voucher terlebih dahulu.';
+  const acctErrors = accountErrors(ctx.service, d.account || {});
+  Object.keys(acctErrors).forEach(function (k) { d.errors[k] = acctErrors[k]; });
+  renderDetail();
+  if (Object.keys(d.errors).length) return null;
+  return { service: ctx.service, region: ctx.region, variant: variant };
+}
+
+/* ---------- keranjang ---------- */
+function cartItemDetail(item) {
+  if (item.kind === 'console') {
+    const c = CONSOLE_INDEX.get(item.id);
+    return {
+      name: c ? c.name : 'Produk tidak tersedia',
+      image: c ? consoleArtwork(c) : svgTile('#1f2937', '#374151', '?', ''),
+      regionLabel: '',
+      nominal: 'Konsol',
+      accountLines: [],
+      available: !!c
+    };
+  }
+  const entry = VARIANT_INDEX.get(item.id);
+  if (!entry) {
+    return { name: 'Produk tidak tersedia', image: svgTile('#1f2937', '#374151', '?', ''), regionLabel: '', nominal: '', accountLines: [], available: false };
+  }
+  const accountLines = (entry.service.account || []).map(function (field) {
+    const val = item.account ? item.account[field.key] : '';
+    return field.label + ': ' + (val || '-');
+  });
+  return {
+    name: entry.service.name,
+    image: serviceArtwork(entry.service),
+    regionLabel: entry.region.label,
+    nominal: entry.variant.nominal,
+    accountLines: accountLines,
+    available: true
+  };
+}
+
+function addToCart(item) {
+  const existing = state.cart.find(function (i) { return i.key === item.key; });
+  if (existing) existing.qty = Math.min(99, existing.qty + item.qty);
+  else state.cart.push(item);
+  if (!persistCart(state.cart)) {
+    toast('Keranjang tidak dapat disimpan di browser ini. Periksa pengaturan penyimpanan.', 'error');
+  }
+  renderCart();
+  toast('Ditambahkan ke keranjang.', 'ok');
+}
+
+function renderCart() {
+  $('#cartCount').textContent = String(cartCount());
+  const body = $('#cartBody');
+  if (!state.cart.length) {
+    body.innerHTML = '<div class="empty">Keranjang masih kosong.<br><span class="small">Pilih produk lalu tambahkan ke keranjang.</span></div>';
+  } else {
+    body.innerHTML = state.cart.map(function (item) {
+      const detail = cartItemDetail(item);
+      const unit = cartLinePrice(item);
+      const accountHtml = detail.accountLines.length
+        ? '<div class="ci-meta">' + detail.accountLines.map(function (l) { return esc(l); }).join('<br>') + '</div>'
+        : '';
+      const regionHtml = detail.regionLabel ? esc(detail.regionLabel) + ' — ' : '';
+      return '<div class="cart-item" data-key="' + esc(item.key) + '">' +
+        '<img src="' + detail.image + '" alt="' + esc(detail.name) + '">' +
+        '<div class="ci-main">' +
+          '<h4>' + esc(detail.name) + '</h4>' +
+          '<div class="ci-meta">' + regionHtml + esc(detail.nominal) + '</div>' +
+          accountHtml +
+          '<div class="ci-price">' + rupiah(unit) + '</div>' +
+          '<div class="qty">' +
+            '<button type="button" data-qty="dec" aria-label="Kurangi jumlah">−</button>' +
+            '<span>' + item.qty + '</span>' +
+            '<button type="button" data-qty="inc" aria-label="Tambah jumlah">+</button>' +
+          '</div>' +
+        '</div>' +
+        '<button class="ci-remove" type="button" data-remove aria-label="Hapus ' + esc(detail.name) + '">Hapus</button>' +
+      '</div>';
+    }).join('');
+  }
+  $('#cartSubtotal').textContent = rupiah(cartSubtotal());
+  $('#checkoutBtn').disabled = state.cart.length === 0;
+}
+
+function setCartOpen(open) {
+  state.ui.cartOpen = open;
+  $('#cartDrawer').classList.toggle('open', open);
+  $('#cartDrawer').setAttribute('aria-hidden', open ? 'false' : 'true');
+  $('#cartScrim').classList.toggle('show', open);
+  if (open) {
+    const first = $('#cartClose');
+    if (first) first.focus();
+  }
+}
+
+/* =========================================================
+   Admin — login & navigasi
+   ========================================================= */
+function openAdmin() {
+  $('#catalogView').hidden = true;
+  $('#adminView').hidden = false;
+  $('#liveChatBtn').hidden = true;
+  window.scrollTo(0, 0);
+  if (sessionActive()) showDashboard();
+  else showLogin();
+}
+
+function showLogin(message) {
+  $('#loginWrap').hidden = false;
+  $('#dashboard').hidden = true;
+  const err = $('#loginError');
+  if (message) { err.textContent = message; err.hidden = false; }
+  else { err.textContent = ''; err.hidden = true; }
+  $('#loginUser').value = '';
+  $('#loginPass').value = '';
+  $('#loginUser').focus();
+}
+function showDashboard() {
+  $('#loginWrap').hidden = true;
+  $('#dashboard').hidden = false;
+  refreshAdmin();
+}
+function goCatalog() {
+  $('#adminView').hidden = true;
+  $('#catalogView').hidden = false;
+  $('#liveChatBtn').hidden = false;
+  renderCatalog();
+  renderCart();
+  closeDetail();
+  window.scrollTo(0, 0);
+}
+
+function loginSubmit(event) {
+  event.preventDefault();
+  const username = $('#loginUser').value;
+  const password = $('#loginPass').value;
+  if (username === DEMO_USER && password === DEMO_PASS) {
+    setSession(true);
+    $('#loginError').hidden = true;
+    showDashboard();
+    toast('Berhasil masuk sebagai admin.', 'ok');
+  } else {
+    const err = $('#loginError');
+    err.textContent = 'Username atau password salah.';
+    err.hidden = false;
+    $('#loginPass').value = '';
+    $('#loginPass').focus();
+  }
+}
+
+/* =========================================================
+   Admin — draft & simpan
+   ========================================================= */
+function priceString(id, sample) {
+  const stored = state.cfg.prices[id];
+  return String(typeof stored === 'number' ? stored : sample);
+}
+function draftConsoleValue(id, sample) {
+  return Object.prototype.hasOwnProperty.call(state.admin.draftConsole, id)
+    ? state.admin.draftConsole[id]
+    : priceString(id, sample);
+}
+function draftVoucherValue(id, sample) {
+  return Object.prototype.hasOwnProperty.call(state.admin.draftVoucher, id)
+    ? state.admin.draftVoucher[id]
+    : priceString(id, sample);
+}
+function phoneDraftValue() {
+  return state.admin.phoneDraft == null ? String(state.cfg.phone || '') : state.admin.phoneDraft;
+}
+
+function isDirty() {
+  const dc = state.admin.draftConsole;
+  for (const id in dc) {
+    if (!Object.prototype.hasOwnProperty.call(dc, id)) continue;
+    const item = CONSOLE_INDEX.get(id);
+    if (item && String(dc[id]).trim() !== priceString(id, item.price)) return true;
+  }
+  const dv = state.admin.draftVoucher;
+  for (const vid in dv) {
+    if (!Object.prototype.hasOwnProperty.call(dv, vid)) continue;
+    const entry = VARIANT_INDEX.get(vid);
+    if (entry && String(dv[vid]).trim() !== priceString(vid, entry.variant.price)) return true;
+  }
+  return phoneDraftValue().trim() !== String(state.cfg.phone || '');
+}
+
+function parsePriceInput(raw, label) {
+  const value = String(raw == null ? '' : raw).trim();
+  if (!value) return { ok: false, msg: 'Harga ' + label + ' belum diisi. Masukkan angka bulat, contoh 12000.' };
+  if (value.charAt(0) === '-') return { ok: false, msg: 'Harga tidak boleh negatif. Masukkan angka bulat nonnegatif.' };
+  if (!/^\d+$/.test(value)) {
+    return { ok: false, msg: 'Harga harus bilangan bulat tanpa titik/koma. Contoh: 12000.' };
+  }
+  const num = Number(value);
+  if (!Number.isSafeInteger(num)) {
+    return { ok: false, msg: 'Angka terlalu besar. Maksimal ' + Number.MAX_SAFE_INTEGER + '.' };
+  }
+  return { ok: true, value: num };
+}
+
+function updateDirtyUI() {
+  const dirty = isDirty();
+  $('#dirtyNote').textContent = dirty
+    ? 'Ada perubahan belum disimpan.'
+    : 'Tidak ada perubahan belum disimpan.';
+  $('#dirtyNote').style.color = dirty ? 'var(--warn)' : 'var(--muted)';
+}
+
+function refreshAdmin() {
+  renderSummary();
+  renderConsolePrices();
+  renderVoucherFilters();
+  renderVoucherPrices();
+  syncPhoneInput();
+  updateDirtyUI();
+  setTab(state.admin.tab);
+}
+
+function setTab(tab) {
+  state.admin.tab = tab;
+  $$('[data-tab]').forEach(function (btn) {
+    btn.setAttribute('aria-current', btn.getAttribute('data-tab') === tab ? 'true' : 'false');
+  });
+  const titles = { ringkasan: 'Ringkasan', konsol: 'Harga Konsol', voucher: 'Harga Voucher', toko: 'Pengaturan Toko' };
+  $('#tabTitle').textContent = titles[tab] || 'Ringkasan';
+  $$('[data-panel]').forEach(function (panel) {
+    panel.hidden = panel.getAttribute('data-panel') !== tab;
+  });
+}
+
+function renderSummary() {
+  const totalVariants = SERVICES.reduce(function (sum, s) {
+    return sum + s.regions.reduce(function (n, r) { return n + r.variants.length; }, 0);
+  }, 0);
+  const phone = normalizePhone(state.cfg.phone);
+  const phoneStatus = phone.ok ? phone.display : 'Belum diatur';
+  $('#summaryGrid').innerHTML =
+    '<div class="stat"><div class="k">Konsol</div><div class="v">' + CONSOLES.length + '</div><div class="d">Produk konsol aktif</div></div>' +
+    '<div class="stat"><div class="k">Layanan voucher</div><div class="v">' + SERVICES.length + '</div><div class="d">Layanan unik</div></div>' +
+    '<div class="stat"><div class="k">Varian voucher</div><div class="v">' + totalVariants + '</div><div class="d">Nominal lintas region</div></div>' +
+    '<div class="stat"><div class="k">WhatsApp toko</div><div class="v ' + (phone.ok ? 'ok' : 'warn') + '" style="font-size:16px;margin-top:10px">' +
+      esc(phoneStatus) + '</div><div class="d">' + (phone.ok ? 'Siap dipakai checkout' : 'Belum dikonfigurasi') + '</div></div>';
+}
+
+function renderConsolePrices() {
+  const rows = CONSOLES.map(function (c) {
+    const raw = draftConsoleValue(c.id, c.price);
+    const err = state.admin.errors['console:' + c.id];
+    return '<div class="trow">' +
+      '<div class="prod">' +
+        '<img src="' + consoleArtwork(c) + '" alt="">' +
+        '<div><div class="name">' + esc(c.name) + '</div><div class="id">' + esc(c.id) + '</div></div>' +
+      '</div>' +
+      '<div><span class="cell-label">Harga contoh</span><span class="money muted">' + rupiah(c.price) + '</span></div>' +
+      '<div>' +
+        '<span class="cell-label">Harga jual (IDR)</span>' +
+        '<label class="pricebox' + (err ? ' invalid' : '') + '"><span>Rp</span>' +
+          '<input type="text" inputmode="numeric" autocomplete="off" data-console="' + esc(c.id) + '" value="' + esc(raw) + '" ' +
+            'aria-label="Harga jual ' + esc(c.name) + '">' +
+        '</label>' +
+        '<p class="field-error"' + (err ? '' : ' hidden') + ' data-err="console:' + esc(c.id) + '">' + esc(err || '') + '</p>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  $('#consoleTable').innerHTML =
+    '<div class="trow th"><span>Produk</span><span>Harga contoh</span><span>Harga jual</span></div>' + rows;
+}
+
+function renderVoucherFilters() {
+  const regionSel = $('#voucherRegionFilter');
+  regionSel.value = state.admin.region;
+  const serviceSel = $('#voucherServiceFilter');
+  if (serviceSel.options.length <= 1) {
+    serviceSel.innerHTML = '<option value="all">Semua layanan</option>' + SERVICES.map(function (s) {
+      return '<option value="' + esc(s.id) + '">' + esc(s.name) + '</option>';
+    }).join('');
+  }
+  serviceSel.value = state.admin.service;
+}
+
+function voucherRowsData() {
+  const rows = [];
+  SERVICES.forEach(function (service) {
+    service.regions.forEach(function (region) {
+      region.variants.forEach(function (variant) {
+        if (state.admin.region !== 'all' && region.code !== state.admin.region) return;
+        if (state.admin.service !== 'all' && service.id !== state.admin.service) return;
+        rows.push({ service: service, region: region, variant: variant });
+      });
+    });
+  });
+  return rows;
+}
+
+function renderVoucherPrices() {
+  const rows = voucherRowsData();
+  if (!rows.length) {
+    $('#voucherTable').innerHTML = '<div class="empty">Tidak ada varian voucher untuk filter ini.</div>';
+    return;
+  }
+  const body = rows.map(function (row) {
+    const id = row.variant.id;
+    const raw = draftVoucherValue(id, row.variant.price);
+    const err = state.admin.errors['voucher:' + id];
+    return '<div class="trow v">' +
+      '<div class="prod">' +
+        '<img src="' + serviceArtwork(row.service) + '" alt="">' +
+        '<div><div class="name">' + esc(row.service.name) + '</div><div class="id">' + esc(id) + '</div></div>' +
+      '</div>' +
+      '<div><span class="cell-label">Region akun</span><span class="small">' + esc(row.region.label) + ' · ' + esc(row.region.currency) + '</span>' +
+        '<div><span class="cell-label" style="margin-top:6px">Nominal</span><span class="money">' + esc(row.variant.nominal) + '</span></div>' +
+      '</div>' +
+      '<div><span class="cell-label">Harga contoh</span><span class="money muted">' + rupiah(row.variant.price) + '</span></div>' +
+      '<div>' +
+        '<span class="cell-label">Harga jual (IDR)</span>' +
+        '<label class="pricebox' + (err ? ' invalid' : '') + '"><span>Rp</span>' +
+          '<input type="text" inputmode="numeric" autocomplete="off" data-voucher="' + esc(id) + '" value="' + esc(raw) + '" ' +
+            'aria-label="Harga jual ' + esc(row.service.name + ' ' + row.region.label + ' ' + row.variant.nominal) + '">' +
+        '</label>' +
+        '<p class="field-error"' + (err ? '' : ' hidden') + ' data-err="voucher:' + esc(id) + '">' + esc(err || '') + '</p>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  $('#voucherTable').innerHTML =
+    '<div class="trow th v"><span>Layanan</span><span>Region &amp; nominal</span><span>Harga contoh</span><span>Harga jual</span></div>' + body;
+}
+
+function syncPhoneInput() {
+  const input = $('#phoneInput');
+  input.value = phoneDraftValue();
+  $('#phoneError').hidden = true;
+  $('#phoneError').textContent = '';
+}
+
+/* simpan */
+function requireSession() {
+  if (sessionActive()) return true;
+  showLogin();
+  const err = $('#loginError');
+  err.textContent = 'Sesi admin berakhir. Silakan masuk kembali.';
+  err.hidden = false;
+  return false;
+}
+
+function collectPriceChanges() {
+  const prices = {};
+  const errors = {};
+  let firstInvalid = null;
+
+  Object.keys(state.admin.draftConsole).forEach(function (id) {
+    const item = CONSOLE_INDEX.get(id);
+    if (!item) return;
+    const raw = state.admin.draftConsole[id];
+    if (String(raw).trim() === priceString(id, item.price)) return;
+    const result = parsePriceInput(raw, item.name);
+    if (!result.ok) {
+      errors['console:' + id] = result.msg;
+      if (!firstInvalid) firstInvalid = '[data-console="' + id + '"]';
+    } else {
+      prices[id] = result.value;
+    }
+  });
+
+  Object.keys(state.admin.draftVoucher).forEach(function (id) {
+    const entry = VARIANT_INDEX.get(id);
+    if (!entry) return;
+    const raw = state.admin.draftVoucher[id];
+    if (String(raw).trim() === priceString(id, entry.variant.price)) return;
+    const result = parsePriceInput(raw, entry.service.name + ' ' + entry.variant.nominal);
+    if (!result.ok) {
+      errors['voucher:' + id] = result.msg;
+      if (!firstInvalid) firstInvalid = '[data-voucher="' + id + '"]';
+    } else {
+      prices[id] = result.value;
+    }
+  });
+
+  return { prices: prices, errors: errors, firstInvalid: firstInvalid };
+}
+
+function applyErrors(errors) {
+  state.admin.errors = errors || {};
+  $$('[data-err]').forEach(function (node) {
+    const key = node.getAttribute('data-err');
+    const msg = state.admin.errors[key];
+    node.textContent = msg || '';
+    node.hidden = !msg;
+    const box = node.parentElement.querySelector('.pricebox');
+    if (box) box.classList.toggle('invalid', !!msg);
+  });
+}
+
+function saveChanges() {
+  if (!requireSession()) return false;
+
+  const phoneRaw = phoneDraftValue();
+  let phoneValue = state.cfg.phone || '';
+  let phoneError = '';
+  let phoneChanged = phoneRaw.trim() !== String(state.cfg.phone || '');
+  if (phoneChanged) {
+    if (!phoneRaw.trim()) {
+      phoneValue = '';
+    } else {
+      const result = normalizePhone(phoneRaw);
+      if (!result.ok) phoneError = result.msg;
+      else phoneValue = result.value;
+    }
+  }
+
+  const changeSet = collectPriceChanges();
+  const errors = Object.assign({}, changeSet.errors);
+
+  applyErrors(errors);
+  const phoneErrNode = $('#phoneError');
+  if (phoneError) {
+    phoneErrNode.textContent = phoneError;
+    phoneErrNode.hidden = false;
+    if (state.admin.tab !== 'toko') setTab('toko');
+  } else {
+    phoneErrNode.hidden = true;
+    phoneErrNode.textContent = '';
+  }
+
+  if (Object.keys(errors).length || phoneError) {
+    if (changeSet.firstInvalid) {
+      const field = $(changeSet.firstInvalid);
+      if (field) {
+        if (state.admin.tab !== 'konsol' && state.admin.tab !== 'voucher') {
+          setTab(changeSet.firstInvalid.indexOf('data-console') !== -1 ? 'konsol' : 'voucher');
+        }
+        field.focus();
+      }
+    } else if (phoneError) {
+      $('#phoneInput').focus();
+    }
+    toast('Perubahan belum disimpan. Perbaiki isian yang ditandai.', 'error');
+    return false;
+  }
+
+  const nextCfg = {
+    phone: phoneValue,
+    prices: Object.assign({}, state.cfg.prices, changeSet.prices)
+  };
+
+  if (!persistCfg(nextCfg)) {
+    toast('Penyimpanan browser menolak perubahan. Isian Anda dipertahankan, coba lagi atau izinkan penyimpanan situs ini.', 'error');
+    return false;
+  }
+
+  state.cfg = nextCfg;
+  state.admin.draftConsole = {};
+  state.admin.draftVoucher = {};
+  state.admin.phoneDraft = null;
+  state.admin.errors = {};
+  applyErrors({});
+  syncPhoneInput();
+  refreshAdmin();
+  renderCatalog();
+  renderCart();
+  toast('Perubahan berhasil disimpan.', 'ok');
+  return true;
+}
+
+function restoreDefaults() {
+  if (!requireSession()) return;
+  confirmDialog(
+    'Kembalikan harga contoh?',
+    'Semua harga konsol dan voucher akan kembali ke harga contoh. Nomor WhatsApp toko dan isi keranjang pelanggan tidak berubah.',
+    'Ya, kembalikan',
+    'Batal'
+  ).then(function (ok) {
+    if (!ok) {
+      toast('Pemulihan harga dibatalkan. Pengaturan tetap.');
+      return;
+    }
+    if (!requireSession()) return;
+    const nextCfg = { phone: state.cfg.phone, prices: {} };
+    if (!persistCfg(nextCfg)) {
+      toast('Penyimpanan browser menolak perubahan. Coba lagi.', 'error');
+      return;
+    }
+    state.cfg = nextCfg;
+    state.admin.draftConsole = {};
+    state.admin.draftVoucher = {};
+    state.admin.phoneDraft = null;
+    state.admin.errors = {};
+    applyErrors({});
+    refreshAdmin();
+    renderCatalog();
+    renderCart();
+    toast('Harga contoh berhasil dipulihkan.', 'ok');
+  });
+}
+
+/* keluar dashboard dengan perubahan belum disimpan */
+function leaveAdmin(destination) {
+  if (!isDirty()) {
+    if (destination === 'logout') {
+      setSession(false);
+      state.admin.draftConsole = {};
+      state.admin.draftVoucher = {};
+      state.admin.phoneDraft = null;
+      state.admin.errors = {};
+      goCatalog();
+      toast('Anda telah keluar. Silakan masuk lagi untuk membuka dashboard.');
+    } else {
+      goCatalog();
+    }
+    return;
+  }
+  showDialog({
+    title: 'Perubahan belum disimpan',
+    message: 'Simpan perubahan sebelum keluar dari dashboard, atau buang isian yang belum disimpan.',
+    buttons: [
+      { label: 'Batal', value: 'cancel', variant: 'ghost' },
+      { label: 'Buang perubahan', value: 'discard', variant: 'danger' },
+      { label: 'Simpan', value: 'save', variant: 'primary' }
+    ]
+  }).then(function (choice) {
+    if (choice === 'save') {
+      const saved = saveChanges();
+      if (saved) {
+        if (destination === 'logout') {
+          setSession(false);
+          goCatalog();
+          toast('Perubahan disimpan. Anda telah keluar.');
+        } else {
+          goCatalog();
+        }
+      }
+      return;
+    }
+    if (choice === 'discard') {
+      state.admin.draftConsole = {};
+      state.admin.draftVoucher = {};
+      state.admin.phoneDraft = null;
+      state.admin.errors = {};
+      if (destination === 'logout') {
+        setSession(false);
+        goCatalog();
+        toast('Perubahan dibuang. Anda telah keluar.');
+      } else {
+        refreshAdmin();
+        goCatalog();
+      }
+    }
+  });
+}
+
+/* =========================================================
+   Event wiring
+   ========================================================= */
+function init() {
+  renderCatalog();
+  renderCart();
+  renderDetail();
+  setTab('ringkasan');
+
+  /* pencarian & filter */
+  $('#searchInput').addEventListener('input', function (e) {
+    state.ui.q = e.target.value;
+    renderCatalog();
+  });
+  $('#catChips').addEventListener('click', function (e) {
+    const btn = e.target.closest('[data-cat]');
+    if (!btn) return;
+    state.ui.cat = btn.getAttribute('data-cat');
+    renderCatalog();
+  });
+  $('#regionFilter').addEventListener('change', function (e) {
+    state.ui.region = e.target.value;
+    renderCatalog();
+  });
+
+  /* buka detail */
+  $('#consoleGrid').addEventListener('click', function (e) {
+    const btn = e.target.closest('[data-open-console]');
+    if (btn) openConsoleDetail(btn.getAttribute('data-open-console'));
+  });
+  $('#voucherGrid').addEventListener('click', function (e) {
+    const btn = e.target.closest('[data-open-service]');
+    if (btn) openServiceDetail(btn.getAttribute('data-open-service'));
+  });
+
+  /* modal detail */
+  $('#detailModal').addEventListener('click', function (e) {
+    if (e.target === e.currentTarget) { closeDetail(); return; }
+    if (e.target.closest('[data-close]')) { closeDetail(); return; }
+
+    const variantBtn = e.target.closest('[data-variant]');
+    if (variantBtn) {
+      const d = state.ui.detail;
+      if (!d) return;
+      d.variantId = variantBtn.getAttribute('data-variant');
+      d.errors = d.errors || {};
+      delete d.errors.variant;
+      renderDetail();
+      const selected = $('.nominal[aria-pressed="true"]', $('#detailModal'));
+      if (selected) selected.focus();
+      return;
+    }
+
+    const addConsole = e.target.closest('[data-add-console]');
+    if (addConsole) {
+      const id = addConsole.getAttribute('data-add-console');
+      addToCart({ key: id, kind: 'console', id: id, qty: 1, account: {} });
+      return;
+    }
+    const buyConsole = e.target.closest('[data-buy-console]');
+    if (buyConsole) {
+      const c = CONSOLE_INDEX.get(buyConsole.getAttribute('data-buy-console'));
+      if (!c) return;
+      wa('product', { productName: c.name, regionLabel: '', nominal: 'Konsol', price: consolePrice(c), accountLines: [] });
+      return;
+    }
+    const addService = e.target.closest('[data-add-service]');
+    if (addService) {
+      const selection = validateDetailSelection();
+      if (!selection) { toast('Lengkapi pilihan dan data akun terlebih dahulu.', 'error'); return; }
+      const d = state.ui.detail;
+      const account = {};
+      (selection.service.account || []).forEach(function (field) {
+        account[field.key] = String(d.account[field.key] || '').trim();
+      });
+      const key = selection.variant.id + '::' + JSON.stringify(account);
+      addToCart({ key: key, kind: 'voucher', id: selection.variant.id, qty: 1, account: account });
+      return;
+    }
+    const buyService = e.target.closest('[data-buy-service]');
+    if (buyService) {
+      const selection = validateDetailSelection();
+      if (!selection) { toast('Lengkapi pilihan dan data akun terlebih dahulu.', 'error'); return; }
+      const d = state.ui.detail;
+      const payload = detailPayload(selection.service, selection.region, selection.variant);
+      payload.accountLines = (selection.service.account || []).map(function (field) {
+        return field.label + ': ' + String(d.account[field.key] || '').trim();
+      });
+      wa('product', payload);
+    }
+  });
+
+  /* keranjang */
+  $('#cartBtn').addEventListener('click', function () { setCartOpen(true); });
+  $('#cartClose').addEventListener('click', function () { setCartOpen(false); });
+  $('#cartScrim').addEventListener('click', function () { setCartOpen(false); });
+  $('#cartBody').addEventListener('click', function (e) {
+    const row = e.target.closest('.cart-item');
+    if (!row) return;
+    const key = row.getAttribute('data-key');
+    const item = state.cart.find(function (i) { return i.key === key; });
+    if (!item) return;
+    if (e.target.closest('[data-remove]')) {
+      state.cart = state.cart.filter(function (i) { return i.key !== key; });
+      persistCart(state.cart);
+      renderCart();
+      return;
+    }
+    const qtyBtn = e.target.closest('[data-qty]');
+    if (qtyBtn) {
+      if (qtyBtn.getAttribute('data-qty') === 'inc') item.qty = Math.min(99, item.qty + 1);
+      else item.qty = Math.max(1, item.qty - 1);
+      persistCart(state.cart);
+      renderCart();
+    }
+  });
+  $('#checkoutBtn').addEventListener('click', function () {
+    if (!state.cart.length) return;
+    wa('cart');
+  });
+
+  /* live chat */
+  $('#liveChatBtn').addEventListener('click', function () { wa('general'); });
+
+  /* tombol admin */
+  $('#adminBtn').addEventListener('click', function () { openAdmin(); });
+
+  /* login */
+  $('#loginForm').addEventListener('submit', loginSubmit);
+
+  /* navigasi dashboard */
+  $$('[data-tab]').forEach(function (btn) {
+    btn.addEventListener('click', function () { setTab(btn.getAttribute('data-tab')); });
+  });
+  $('#navCatalog').addEventListener('click', function () { leaveAdmin('catalog'); });
+  $('#navLogout').addEventListener('click', function () { leaveAdmin('logout'); });
+
+  /* input harga */
+  $('#consoleTable').addEventListener('input', function (e) {
+    const input = e.target.closest('[data-console]');
+    if (!input) return;
+    const id = input.getAttribute('data-console');
+    state.admin.draftConsole[id] = input.value;
+    delete state.admin.errors['console:' + id];
+    const errNode = $('[data-err="console:' + id + '"]');
+    if (errNode) { errNode.hidden = true; errNode.textContent = ''; }
+    const box = input.closest('.pricebox');
+    if (box) box.classList.remove('invalid');
+    updateDirtyUI();
+  });
+  $('#voucherTable').addEventListener('input', function (e) {
+    const input = e.target.closest('[data-voucher]');
+    if (!input) return;
+    const id = input.getAttribute('data-voucher');
+    state.admin.draftVoucher[id] = input.value;
+    delete state.admin.errors['voucher:' + id];
+    const errNode = $('[data-err="voucher:' + id + '"]');
+    if (errNode) { errNode.hidden = true; errNode.textContent = ''; }
+    const box = input.closest('.pricebox');
+    if (box) box.classList.remove('invalid');
+    updateDirtyUI();
+  });
+
+  $('#phoneInput').addEventListener('input', function (e) {
+    state.admin.phoneDraft = e.target.value;
+    $('#phoneError').hidden = true;
+    updateDirtyUI();
+  });
+
+  /* filter voucher */
+  $('#voucherRegionFilter').addEventListener('change', function (e) {
+    state.admin.region = e.target.value;
+    renderVoucherPrices();
+  });
+  $('#voucherServiceFilter').addEventListener('change', function (e) {
+    state.admin.service = e.target.value;
+    renderVoucherPrices();
+  });
+
+  $('#saveBtn').addEventListener('click', function () { saveChanges(); });
+  $('#restoreBtn').addEventListener('click', function () { restoreDefaults(); });
+
+  /* keyboard */
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    if (state.ui.detail) { closeDetail(); return; }
+    if (state.ui.cartOpen) { setCartOpen(false); }
+  });
+
+  /* peringatan keluar halaman */
+  window.addEventListener('beforeunload', function (e) {
+    if (!$('#adminView').hidden && !$('#dashboard').hidden && isDirty()) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
