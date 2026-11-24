@@ -40,11 +40,11 @@
   img{max-width:100%;display:block}
   button{font:inherit;color:inherit;cursor:pointer}
   input,select{font:inherit}
-  a{color:var(--a2)}
   :focus-visible{outline:2px solid var(--a2);outline-offset:2px;border-radius:8px}
   .wrap{width:min(1200px,100% - 32px);margin-inline:auto}
   .muted{color:var(--muted)}
   .small{font-size:13px}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
   /* ---------- header ---------- */
   .topbar{
@@ -188,7 +188,6 @@
 
   /* ---------- modal ---------- */
   .modal{position:fixed;inset:0;z-index:70;display:grid;place-items:center;padding:16px;background:rgba(3,5,12,.75);backdrop-filter:blur(4px)}
-  .modal[hidden]{display:none}
   .modal-card{
     width:min(760px,100%);max-height:92vh;overflow:auto;background:var(--bg-2);border:1px solid var(--line);
     border-radius:20px;box-shadow:var(--shadow);position:relative
@@ -218,14 +217,12 @@
   .detail-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
   .detail-actions .btn{flex:1 1 180px}
   .field-error,.form-error{color:#fca5a5;font-size:12.5px;margin:6px 0 0;font-weight:600}
-  .form-error[hidden],.field-error[hidden]{display:none}
   .intro-box{
     background:rgba(34,211,238,.07);border:1px solid rgba(34,211,238,.25);border-radius:12px;
     padding:10px 12px;font-size:12.5px;color:#bfe9f3;margin-bottom:16px
   }
 
   /* ---------- admin ---------- */
-  .view[hidden]{display:none !important}
   .login-wrap{min-height:calc(100vh - 80px);display:grid;place-items:center;padding:40px 0}
   .login-card{
     width:min(420px,100%);background:var(--card);border:1px solid var(--line);border-radius:20px;
@@ -318,7 +315,6 @@
     padding:12px 18px;border-radius:999px;box-shadow:0 14px 40px rgba(37,211,102,.35)
   }
   .fab:hover{filter:brightness(1.06)}
-  .fab[hidden]{display:none}
 
   @media (max-width:860px){
     .admin-shell{grid-template-columns:1fr;padding-top:12px}
@@ -353,7 +349,7 @@
     <div class="brand"><span class="brand-mark">GV</span><span>Game<b>Vault</b></span></div>
     <div class="search">
       <span class="icon" aria-hidden="true">&#128269;</span>
-      <label class="sr-only" for="searchInput" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Cari produk</label>
+      <label class="sr-only" for="searchInput">Cari produk</label>
       <input id="searchInput" type="text" placeholder="Cari konsol, voucher, atau top up..." autocomplete="off">
     </div>
     <div class="top-actions">
@@ -699,12 +695,10 @@ function rupiah(n) {
   const v = Number(n);
   return 'Rp ' + (Number.isFinite(v) ? Math.round(v) : 0).toLocaleString('id-ID');
 }
+const ESC_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
 function esc(value) {
-  return String(value == null ? '' : value).replace(/[&<>"']/g, function (ch) {
-    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
-  });
+  return String(value == null ? '' : value).replace(/[&<>"']/g, function (ch) { return ESC_MAP[ch]; });
 }
-function safeText(value) { return String(value == null ? '' : value); }
 
 function toast(message, kind) {
   const root = $('#toasts');
@@ -744,10 +738,8 @@ function validateRobloxUser(value) {
 /* =========================================================
    Penyimpanan
    ========================================================= */
-function emptyCfg() { return { phone: '', prices: {} }; }
-
 function loadCfg() {
-  const cfg = emptyCfg();
+  const cfg = { phone: '', prices: {} };
   let raw = null;
   try { raw = localStorage.getItem(LS_CFG); } catch (e) { raw = null; }
   if (!raw) return cfg;
@@ -1463,12 +1455,12 @@ function openAdmin() {
   else showLogin();
 }
 
-function showLogin(message) {
+function showLogin() {
   $('#loginWrap').hidden = false;
   $('#dashboard').hidden = true;
   const err = $('#loginError');
-  if (message) { err.textContent = message; err.hidden = false; }
-  else { err.textContent = ''; err.hidden = true; }
+  err.textContent = '';
+  err.hidden = true;
   $('#loginUser').value = '';
   $('#loginPass').value = '';
   $('#loginUser').focus();
@@ -1513,34 +1505,31 @@ function priceString(id, sample) {
   const stored = state.cfg.prices[id];
   return String(typeof stored === 'number' ? stored : sample);
 }
-function draftConsoleValue(id, sample) {
-  return Object.prototype.hasOwnProperty.call(state.admin.draftConsole, id)
-    ? state.admin.draftConsole[id]
-    : priceString(id, sample);
-}
-function draftVoucherValue(id, sample) {
-  return Object.prototype.hasOwnProperty.call(state.admin.draftVoucher, id)
-    ? state.admin.draftVoucher[id]
-    : priceString(id, sample);
+function draftValue(draft, id, sample) {
+  return Object.prototype.hasOwnProperty.call(draft, id) ? draft[id] : priceString(id, sample);
 }
 function phoneDraftValue() {
   return state.admin.phoneDraft == null ? String(state.cfg.phone || '') : state.admin.phoneDraft;
 }
 
+function anyDraftChanged(draft, storedPrice) {
+  return Object.keys(draft).some(function (id) {
+    const base = storedPrice(id);
+    return base !== null && String(draft[id]).trim() !== base;
+  });
+}
+
 function isDirty() {
-  const dc = state.admin.draftConsole;
-  for (const id in dc) {
-    if (!Object.prototype.hasOwnProperty.call(dc, id)) continue;
+  const consoleDirty = anyDraftChanged(state.admin.draftConsole, function (id) {
     const item = CONSOLE_INDEX.get(id);
-    if (item && String(dc[id]).trim() !== priceString(id, item.price)) return true;
-  }
-  const dv = state.admin.draftVoucher;
-  for (const vid in dv) {
-    if (!Object.prototype.hasOwnProperty.call(dv, vid)) continue;
-    const entry = VARIANT_INDEX.get(vid);
-    if (entry && String(dv[vid]).trim() !== priceString(vid, entry.variant.price)) return true;
-  }
-  return phoneDraftValue().trim() !== String(state.cfg.phone || '');
+    return item ? priceString(id, item.price) : null;
+  });
+  if (consoleDirty) return true;
+  const voucherDirty = anyDraftChanged(state.admin.draftVoucher, function (id) {
+    const entry = VARIANT_INDEX.get(id);
+    return entry ? priceString(id, entry.variant.price) : null;
+  });
+  return voucherDirty || phoneDraftValue().trim() !== String(state.cfg.phone || '');
 }
 
 function parsePriceInput(raw, label) {
@@ -1601,9 +1590,20 @@ function renderSummary() {
       esc(phoneStatus) + '</div><div class="d">' + (phone.ok ? 'Siap dipakai checkout' : 'Belum dikonfigurasi') + '</div></div>';
 }
 
+function priceCell(kind, id, label, raw, err) {
+  return '<div>' +
+    '<span class="cell-label">Harga jual (IDR)</span>' +
+    '<label class="pricebox' + (err ? ' invalid' : '') + '"><span>Rp</span>' +
+      '<input type="text" inputmode="numeric" autocomplete="off" data-' + kind + '="' + esc(id) + '" value="' + esc(raw) + '" ' +
+        'aria-label="' + esc(label) + '">' +
+    '</label>' +
+    '<p class="field-error"' + (err ? '' : ' hidden') + ' data-err="' + kind + ':' + esc(id) + '">' + esc(err || '') + '</p>' +
+  '</div>';
+}
+
 function renderConsolePrices() {
   const rows = CONSOLES.map(function (c) {
-    const raw = draftConsoleValue(c.id, c.price);
+    const raw = draftValue(state.admin.draftConsole, c.id, c.price);
     const err = state.admin.errors['console:' + c.id];
     return '<div class="trow">' +
       '<div class="prod">' +
@@ -1611,14 +1611,7 @@ function renderConsolePrices() {
         '<div><div class="name">' + esc(c.name) + '</div><div class="id">' + esc(c.id) + '</div></div>' +
       '</div>' +
       '<div><span class="cell-label">Harga contoh</span><span class="money muted">' + rupiah(c.price) + '</span></div>' +
-      '<div>' +
-        '<span class="cell-label">Harga jual (IDR)</span>' +
-        '<label class="pricebox' + (err ? ' invalid' : '') + '"><span>Rp</span>' +
-          '<input type="text" inputmode="numeric" autocomplete="off" data-console="' + esc(c.id) + '" value="' + esc(raw) + '" ' +
-            'aria-label="Harga jual ' + esc(c.name) + '">' +
-        '</label>' +
-        '<p class="field-error"' + (err ? '' : ' hidden') + ' data-err="console:' + esc(c.id) + '">' + esc(err || '') + '</p>' +
-      '</div>' +
+      priceCell('console', c.id, 'Harga jual ' + c.name, raw, err) +
     '</div>';
   }).join('');
   $('#consoleTable').innerHTML =
@@ -1659,7 +1652,7 @@ function renderVoucherPrices() {
   }
   const body = rows.map(function (row) {
     const id = row.variant.id;
-    const raw = draftVoucherValue(id, row.variant.price);
+    const raw = draftValue(state.admin.draftVoucher, id, row.variant.price);
     const err = state.admin.errors['voucher:' + id];
     return '<div class="trow v">' +
       '<div class="prod">' +
@@ -1670,14 +1663,7 @@ function renderVoucherPrices() {
         '<div><span class="cell-label" style="margin-top:6px">Nominal</span><span class="money">' + esc(row.variant.nominal) + '</span></div>' +
       '</div>' +
       '<div><span class="cell-label">Harga contoh</span><span class="money muted">' + rupiah(row.variant.price) + '</span></div>' +
-      '<div>' +
-        '<span class="cell-label">Harga jual (IDR)</span>' +
-        '<label class="pricebox' + (err ? ' invalid' : '') + '"><span>Rp</span>' +
-          '<input type="text" inputmode="numeric" autocomplete="off" data-voucher="' + esc(id) + '" value="' + esc(raw) + '" ' +
-            'aria-label="Harga jual ' + esc(row.service.name + ' ' + row.region.label + ' ' + row.variant.nominal) + '">' +
-        '</label>' +
-        '<p class="field-error"' + (err ? '' : ' hidden') + ' data-err="voucher:' + esc(id) + '">' + esc(err || '') + '</p>' +
-      '</div>' +
+      priceCell('voucher', id, 'Harga jual ' + row.service.name + ' ' + row.region.label + ' ' + row.variant.nominal, raw, err) +
     '</div>';
   }).join('');
   $('#voucherTable').innerHTML =
@@ -1705,6 +1691,7 @@ function collectPriceChanges() {
   const prices = {};
   const errors = {};
   let firstInvalid = null;
+  let firstTab = null;
 
   Object.keys(state.admin.draftConsole).forEach(function (id) {
     const item = CONSOLE_INDEX.get(id);
@@ -1714,7 +1701,7 @@ function collectPriceChanges() {
     const result = parsePriceInput(raw, item.name);
     if (!result.ok) {
       errors['console:' + id] = result.msg;
-      if (!firstInvalid) firstInvalid = '[data-console="' + id + '"]';
+      if (!firstInvalid) { firstInvalid = '[data-console="' + id + '"]'; firstTab = 'konsol'; }
     } else {
       prices[id] = result.value;
     }
@@ -1728,13 +1715,13 @@ function collectPriceChanges() {
     const result = parsePriceInput(raw, entry.service.name + ' ' + entry.variant.nominal);
     if (!result.ok) {
       errors['voucher:' + id] = result.msg;
-      if (!firstInvalid) firstInvalid = '[data-voucher="' + id + '"]';
+      if (!firstInvalid) { firstInvalid = '[data-voucher="' + id + '"]'; firstTab = 'voucher'; }
     } else {
       prices[id] = result.value;
     }
   });
 
-  return { prices: prices, errors: errors, firstInvalid: firstInvalid };
+  return { prices: prices, errors: errors, firstInvalid: firstInvalid, firstTab: firstTab };
 }
 
 function applyErrors(errors) {
@@ -1782,13 +1769,9 @@ function saveChanges() {
 
   if (Object.keys(errors).length || phoneError) {
     if (changeSet.firstInvalid) {
+      if (changeSet.firstTab && state.admin.tab !== changeSet.firstTab) setTab(changeSet.firstTab);
       const field = $(changeSet.firstInvalid);
-      if (field) {
-        if (state.admin.tab !== 'konsol' && state.admin.tab !== 'voucher') {
-          setTab(changeSet.firstInvalid.indexOf('data-console') !== -1 ? 'konsol' : 'voucher');
-        }
-        field.focus();
-      }
+      if (field) field.focus();
     } else if (phoneError) {
       $('#phoneInput').focus();
     }
@@ -1909,10 +1892,24 @@ function leaveAdmin(destination) {
 /* =========================================================
    Event wiring
    ========================================================= */
+function bindPriceInputs(root, kind, attr, draftKey) {
+  root.addEventListener('input', function (e) {
+    const input = e.target.closest('[' + attr + ']');
+    if (!input) return;
+    const id = input.getAttribute(attr);
+    state.admin[draftKey][id] = input.value;
+    delete state.admin.errors[kind + ':' + id];
+    const errNode = $('[data-err="' + kind + ':' + id + '"]');
+    if (errNode) { errNode.hidden = true; errNode.textContent = ''; }
+    const box = input.closest('.pricebox');
+    if (box) box.classList.remove('invalid');
+    updateDirtyUI();
+  });
+}
+
 function init() {
   renderCatalog();
   renderCart();
-  renderDetail();
   setTab('ringkasan');
 
   /* pencarian & filter */
@@ -1989,12 +1986,7 @@ function init() {
     if (buyService) {
       const selection = validateDetailSelection();
       if (!selection) { toast('Lengkapi pilihan dan data akun terlebih dahulu.', 'error'); return; }
-      const d = state.ui.detail;
-      const payload = detailPayload(selection.service, selection.region, selection.variant);
-      payload.accountLines = (selection.service.account || []).map(function (field) {
-        return field.label + ': ' + String(d.account[field.key] || '').trim();
-      });
-      wa('product', payload);
+      wa('product', detailPayload(selection.service, selection.region, selection.variant));
     }
   });
 
@@ -2044,30 +2036,8 @@ function init() {
   $('#navLogout').addEventListener('click', function () { leaveAdmin('logout'); });
 
   /* input harga */
-  $('#consoleTable').addEventListener('input', function (e) {
-    const input = e.target.closest('[data-console]');
-    if (!input) return;
-    const id = input.getAttribute('data-console');
-    state.admin.draftConsole[id] = input.value;
-    delete state.admin.errors['console:' + id];
-    const errNode = $('[data-err="console:' + id + '"]');
-    if (errNode) { errNode.hidden = true; errNode.textContent = ''; }
-    const box = input.closest('.pricebox');
-    if (box) box.classList.remove('invalid');
-    updateDirtyUI();
-  });
-  $('#voucherTable').addEventListener('input', function (e) {
-    const input = e.target.closest('[data-voucher]');
-    if (!input) return;
-    const id = input.getAttribute('data-voucher');
-    state.admin.draftVoucher[id] = input.value;
-    delete state.admin.errors['voucher:' + id];
-    const errNode = $('[data-err="voucher:' + id + '"]');
-    if (errNode) { errNode.hidden = true; errNode.textContent = ''; }
-    const box = input.closest('.pricebox');
-    if (box) box.classList.remove('invalid');
-    updateDirtyUI();
-  });
+  bindPriceInputs($('#consoleTable'), 'console', 'data-console', 'draftConsole');
+  bindPriceInputs($('#voucherTable'), 'voucher', 'data-voucher', 'draftVoucher');
 
   $('#phoneInput').addEventListener('input', function (e) {
     state.admin.phoneDraft = e.target.value;
@@ -2104,7 +2074,7 @@ function init() {
   });
 }
 
-document.addEventListener('DOMContentLoaded', init);
+init();
 </script>
 </body>
 </html>
